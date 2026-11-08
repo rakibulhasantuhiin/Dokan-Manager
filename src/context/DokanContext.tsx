@@ -552,11 +552,23 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // - Mathematical guarantee: Shop uses < 1% of Firebase free tier daily!
   // =========================================================================
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const lastLocalMutationAt = useRef<number>(0);
+  const lastLocalMutationAt = useRef<number>((() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PREFIX + 'last_mutation_at');
+      return saved ? parseInt(saved, 10) : 0;
+    } catch {
+      return 0;
+    }
+  })());
 
   // Instant & immediate cloud sync queue
   const triggerOptimizedCloudSync = (immediate = true) => {
-    lastLocalMutationAt.current = Date.now();
+    const nowTime = Date.now();
+    lastLocalMutationAt.current = nowTime;
+    try {
+      localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', nowTime.toString());
+    } catch {}
+
     if (!currentUser) return;
 
     if (syncTimeoutRef.current) {
@@ -571,7 +583,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
         const payload = {
           userId,
-          updatedAt: new Date().toISOString(),
+          updatedAt: new Date(nowTime).toISOString(),
           settings: stateRef.current.settings,
           customers: stateRef.current.customers,
           transactions: stateRef.current.transactions,
@@ -583,7 +595,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           cashEntries: stateRef.current.cashEntries,
         };
 
-        await setDoc(masterDocRef, payload);
+        await setDoc(masterDocRef, payload, { merge: true });
         setLastSyncedAt(new Date());
       } catch (err) {
         handleFirestoreError(err, OperationType.WRITE, `users/${currentUser.uid}/shop/master`);
@@ -640,6 +652,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
           // Only accept remote update if snapshot contains pending local writes OR if remote data is >= last local mutation
           if (isPending || remoteTime >= lastLocalMutationAt.current) {
+            lastLocalMutationAt.current = Math.max(lastLocalMutationAt.current, remoteTime);
+            try {
+              localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', lastLocalMutationAt.current.toString());
+            } catch {}
+
             if (data.settings) {
               setSettings(data.settings);
               stateRef.current.settings = data.settings;
