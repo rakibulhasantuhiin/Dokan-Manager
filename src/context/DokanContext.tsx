@@ -552,9 +552,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // - Mathematical guarantee: Shop uses < 1% of Firebase free tier daily!
   // =========================================================================
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastLocalMutationAt = useRef<number>(0);
 
   // Instant & immediate cloud sync queue
   const triggerOptimizedCloudSync = (immediate = true) => {
+    lastLocalMutationAt.current = Date.now();
     if (!currentUser) return;
 
     if (syncTimeoutRef.current) {
@@ -633,54 +635,62 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
+          const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
+          const isPending = docSnap.metadata.hasPendingWrites;
 
-          if (data.settings) {
-            setSettings(data.settings);
-            stateRef.current.settings = data.settings;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(data.settings)); } catch {}
-          }
-          if (Array.isArray(data.customers)) {
-            setCustomers(data.customers);
-            stateRef.current.customers = data.customers;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(data.customers)); } catch {}
-          }
-          if (Array.isArray(data.transactions)) {
-            setTransactions(data.transactions);
-            stateRef.current.transactions = data.transactions;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(data.transactions)); } catch {}
-          }
-          if (Array.isArray(data.products)) {
-            setProducts(data.products);
-            stateRef.current.products = data.products;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(data.products)); } catch {}
-          }
-          if (Array.isArray(data.sales)) {
-            setSales(data.sales);
-            stateRef.current.sales = data.sales;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'sales', JSON.stringify(data.sales)); } catch {}
-          }
-          if (Array.isArray(data.expenses)) {
-            setExpenses(data.expenses);
-            stateRef.current.expenses = data.expenses;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(data.expenses)); } catch {}
-          }
-          if (Array.isArray(data.suppliers)) {
-            setSuppliers(data.suppliers);
-            stateRef.current.suppliers = data.suppliers;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(data.suppliers)); } catch {}
-          }
-          if (Array.isArray(data.purchases)) {
-            setPurchases(data.purchases);
-            stateRef.current.purchases = data.purchases;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'purchases', JSON.stringify(data.purchases)); } catch {}
-          }
-          if (Array.isArray(data.cashEntries)) {
-            setCashEntries(data.cashEntries);
-            stateRef.current.cashEntries = data.cashEntries;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(data.cashEntries)); } catch {}
-          }
+          // Only accept remote update if snapshot contains pending local writes OR if remote data is >= last local mutation
+          if (isPending || remoteTime >= lastLocalMutationAt.current) {
+            if (data.settings) {
+              setSettings(data.settings);
+              stateRef.current.settings = data.settings;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(data.settings)); } catch {}
+            }
+            if (Array.isArray(data.customers)) {
+              setCustomers(data.customers);
+              stateRef.current.customers = data.customers;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(data.customers)); } catch {}
+            }
+            if (Array.isArray(data.transactions)) {
+              setTransactions(data.transactions);
+              stateRef.current.transactions = data.transactions;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(data.transactions)); } catch {}
+            }
+            if (Array.isArray(data.products)) {
+              setProducts(data.products);
+              stateRef.current.products = data.products;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(data.products)); } catch {}
+            }
+            if (Array.isArray(data.sales)) {
+              setSales(data.sales);
+              stateRef.current.sales = data.sales;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'sales', JSON.stringify(data.sales)); } catch {}
+            }
+            if (Array.isArray(data.expenses)) {
+              setExpenses(data.expenses);
+              stateRef.current.expenses = data.expenses;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(data.expenses)); } catch {}
+            }
+            if (Array.isArray(data.suppliers)) {
+              setSuppliers(data.suppliers);
+              stateRef.current.suppliers = data.suppliers;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(data.suppliers)); } catch {}
+            }
+            if (Array.isArray(data.purchases)) {
+              setPurchases(data.purchases);
+              stateRef.current.purchases = data.purchases;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'purchases', JSON.stringify(data.purchases)); } catch {}
+            }
+            if (Array.isArray(data.cashEntries)) {
+              setCashEntries(data.cashEntries);
+              stateRef.current.cashEntries = data.cashEntries;
+              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(data.cashEntries)); } catch {}
+            }
 
-          setLastSyncedAt(new Date());
+            setLastSyncedAt(new Date());
+          } else {
+            console.log('Skipping stale remote snapshot because local state is newer. Re-pushing local state...');
+            triggerOptimizedCloudSync(true);
+          }
         } else {
           // Master doc doesn't exist yet on cloud (first login): customize owner name if available & upload!
           const userDefaultName = currentUser.displayName || currentUser.email?.split('@')[0] || '';
