@@ -112,74 +112,96 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-24 pt-3">
-      {/* Top Header matching image_4c9a67c2.png */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="h-[calc(100dvh-7rem)] lg:h-auto flex flex-col space-y-2 pb-1 lg:pb-20 pt-1.5 sm:pt-3 overflow-hidden lg:overflow-visible">
+      {/* Top Header */}
+      <div className="flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
           <button
             onClick={onBack}
-            className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 transition active:scale-95"
+            className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 transition active:scale-95 shrink-0"
             aria-label="ফিরে যান"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
           </button>
-          <h2 className="text-xl font-bold text-gray-800 tracking-tight">
-            {currentCust.name}
-          </h2>
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-bold text-gray-800 tracking-tight truncate">
+              {currentCust.name}
+            </h2>
+            {currentCust.phone && (
+              <div className="text-[11px] text-gray-500">{toBengaliNumber(currentCust.phone)}</div>
+            )}
+          </div>
         </div>
 
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="p-2 text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition active:scale-95"
-          title="কাস্টমার সম্পাদনা"
-        >
-          <Edit2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => setIsQrModalOpen(true)}
+            className="flex items-center gap-1 bg-orange-50 hover:bg-orange-100 border border-orange-200 py-1.5 px-2.5 rounded-lg font-bold text-xs text-[#b83a14] transition active:scale-95"
+          >
+            <QrCode className="w-3.5 h-3.5" />
+            <span>QR কোড</span>
+          </button>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="p-1.5 text-gray-600 hover:text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition active:scale-95"
+            title="কাস্টমার সম্পাদনা"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setIsDeleteCustOpen(true)}
+            className="p-1.5 text-red-600 hover:bg-red-50 bg-white border border-red-200 rounded-lg transition active:scale-95"
+            title="তালিকা থেকে সরান"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {shareNotice && (
-        <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-xs font-semibold">
+        <div className="p-2 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-xs font-semibold shrink-0">
           {shareNotice}
         </div>
       )}
 
       {/* Edit Customer Inline Form */}
       {isEditing && (
-        <form onSubmit={handleSaveEdit} className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs space-y-3">
-          <h4 className="font-bold text-sm text-gray-800">কাস্টমার তথ্য পরিবর্তন</h4>
-          <input
-            type="text"
-            required
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            placeholder="কাস্টমারের নাম"
-            className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
-          />
-          <input
-            type="tel"
-            value={editPhone}
-            onChange={(e) => setEditPhone(e.target.value)}
-            placeholder="মোবাইল নম্বর"
-            className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
-          />
-          <input
-            type="text"
-            value={editAddress}
-            onChange={(e) => setEditAddress(e.target.value)}
-            placeholder="ঠিকানা (গ্রাম / এলাকা)"
-            className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
-          />
+        <form onSubmit={handleSaveEdit} className="bg-white p-3 rounded-xl border border-gray-200 shadow-xs space-y-2 shrink-0">
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              type="text"
+              required
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              placeholder="কাস্টমারের নাম"
+              className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+            />
+            <input
+              type="tel"
+              value={editPhone}
+              onChange={(e) => setEditPhone(e.target.value)}
+              placeholder="মোবাইল নম্বর"
+              className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+            />
+          </div>
           <div className="flex gap-2">
+            <input
+              type="text"
+              value={editAddress}
+              onChange={(e) => setEditAddress(e.target.value)}
+              placeholder="ঠিকানা (গ্রাম / এলাকা)"
+              className="flex-1 bg-[#fbfaf8] border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+            />
             <button
               type="submit"
-              className="flex-1 py-2 bg-[#b83a14] text-white rounded-lg font-bold text-xs"
+              className="px-3 py-1.5 bg-[#b83a14] text-white rounded-lg font-bold text-xs"
             >
               সংরক্ষণ
             </button>
             <button
               type="button"
               onClick={() => setIsEditing(false)}
-              className="py-2 px-4 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs"
+              className="px-2.5 py-1.5 bg-gray-100 text-gray-700 rounded-lg font-bold text-xs"
             >
               বাতিল
             </button>
@@ -187,103 +209,88 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
         </form>
       )}
 
-      {/* Terracotta Balance Banner matching image_4c9a67c2.png */}
-      <div className="relative overflow-hidden rounded-xl bg-[#b83a14] text-white p-5 shadow-sm">
-        {/* Subtle decorative watermark circle */}
-        <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
-        <div className="absolute right-6 bottom-2 w-28 h-28 rounded-full bg-white/5 pointer-events-none" />
-
-        <div className="relative z-10">
-          <div className="text-xs sm:text-sm text-white/90 font-medium">
-            এখন বাকি
-          </div>
-          <div className="text-3xl sm:text-4xl font-extrabold tracking-tight my-1 text-white">
-            {formatTaka(currentCust.currentDue)}
+      {/* Compact Terracotta Balance Banner */}
+      <div className="relative overflow-hidden rounded-xl bg-[#b83a14] text-white p-3 sm:p-4 shadow-xs shrink-0">
+        <div className="relative z-10 flex items-center justify-between">
+          <div>
+            <div className="text-[11px] sm:text-xs text-white/90 font-medium">
+              বর্তমান মোট বাকি
+            </div>
+            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+              {formatTaka(currentCust.currentDue)}
+            </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs sm:text-sm text-white/90 pt-2 border-t border-white/20 mt-2">
-            <span>মোট বাকি দিয়েছি: {formatTaka(currentCust.totalGiven)}</span>
-            <span>মোট পেয়েছি: {formatTaka(currentCust.totalReceived)}</span>
+          <div className="text-right text-[11px] sm:text-xs text-white/90 space-y-0.5">
+            <div>মোট বাকি দিয়েছি: <strong>{formatTaka(currentCust.totalGiven)}</strong></div>
+            <div>মোট পেয়েছি: <strong>{formatTaka(currentCust.totalReceived)}</strong></div>
           </div>
         </div>
       </div>
 
-      {/* Primary Action Buttons (+ বাকি দিলাম, + টাকা পেলাম) */}
-      <div className="grid grid-cols-2 gap-2.5">
+      {/* Action Buttons Row (+ বাকি দিলাম, + টাকা পেলাম, মনে করান, শেয়ার) */}
+      <div className="grid grid-cols-4 gap-1.5 shrink-0">
         <button
           onClick={() => onOpenDueModal(currentCust)}
-          className="flex items-center justify-center gap-1.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white py-3 px-3 rounded-xl font-bold text-sm sm:text-base shadow-xs transition"
+          className="col-span-1 flex items-center justify-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white py-2 px-1.5 rounded-xl font-bold text-xs shadow-2xs transition"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>বাকি দিলাম</span>
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
+          <span className="truncate">বাকি দিলাম</span>
         </button>
         <button
           onClick={() => onOpenPaymentModal(currentCust)}
-          className="flex items-center justify-center gap-1.5 bg-[#15803d] hover:bg-[#166534] active:scale-[0.99] text-white py-3 px-3 rounded-xl font-bold text-sm sm:text-base shadow-xs transition"
+          className="col-span-1 flex items-center justify-center gap-1 bg-[#15803d] hover:bg-[#166534] active:scale-95 text-white py-2 px-1.5 rounded-xl font-bold text-xs shadow-2xs transition"
         >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>টাকা পেলাম</span>
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
+          <span className="truncate">টাকা পেলাম</span>
         </button>
-      </div>
-
-      {/* Secondary Action Buttons Row (মনে করান, হিসাব শেয়ার) */}
-      <div className="grid grid-cols-2 gap-2.5">
         <button
           onClick={handleSendReminder}
-          className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-gray-700 shadow-2xs transition active:scale-[0.99]"
+          className="col-span-1 flex items-center justify-center gap-1 bg-white hover:bg-gray-50 border border-gray-300 py-2 px-1.5 rounded-xl font-bold text-xs text-gray-700 shadow-2xs transition active:scale-95"
         >
-          <MessageCircle className="w-4 h-4 text-emerald-600" />
-          <span>মনে করান</span>
+          <MessageCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+          <span className="truncate">মনে করান</span>
         </button>
         <button
           onClick={handleShareStatement}
-          className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-300 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-gray-700 shadow-2xs transition active:scale-[0.99]"
+          className="col-span-1 flex items-center justify-center gap-1 bg-white hover:bg-gray-50 border border-gray-300 py-2 px-1.5 rounded-xl font-bold text-xs text-gray-700 shadow-2xs transition active:scale-95"
         >
-          <Share2 className="w-4 h-4 text-blue-600" />
-          <span>হিসাব শেয়ার</span>
+          <Share2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span className="truncate">শেয়ার</span>
         </button>
       </div>
 
-      {/* Prominent QR Code and Public Link Share Button */}
-      <button
-        onClick={() => setIsQrModalOpen(true)}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 border border-orange-200 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-[#b83a14] shadow-2xs transition active:scale-[0.99]"
-      >
-        <QrCode className="w-4 h-4 text-[#b83a14]" />
-        <span>📱 বাকি খাতার পাবলিক লিঙ্ক ও QR কোড</span>
-      </button>
-
-      {/* Transactions Section ("লেনদেন") */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
-        <div className="p-3.5 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-gray-800 text-sm sm:text-base">
-            লেনদেন
+      {/* Transactions Section ("লেনদেন") - Fills Remaining Viewport */}
+      <div className="flex-1 min-h-0 bg-white rounded-xl border border-gray-200 shadow-2xs flex flex-col overflow-hidden">
+        <div className="px-3 py-2 border-b border-gray-100 flex items-center justify-between shrink-0 bg-gray-50/60">
+          <h3 className="font-bold text-gray-800 text-xs sm:text-sm">
+            লেনদেনের ইতিহাস
           </h3>
-          <span className="text-xs text-gray-500 font-medium">
-            মোট লেনদেন: {toBengaliNumber(customerTxs.length)}
+          <span className="text-[11px] text-gray-500 font-medium">
+            মোট লেনদেন: {toBengaliNumber(customerTxs.length)} টি
           </span>
         </div>
 
-        <div className="divide-y divide-gray-100">
+        <div className="flex-1 min-h-0 divide-y divide-gray-100 overflow-y-auto">
           {customerTxs.length > 0 ? (
             customerTxs.map((tx) => (
               <div
                 key={tx.id}
-                className="p-3.5 sm:p-4 flex items-center justify-between hover:bg-gray-50/60 transition"
+                className="p-2.5 sm:p-3.5 flex items-center justify-between hover:bg-gray-50/60 transition"
               >
-                <div>
-                  <div className="text-xs text-gray-500 font-medium">
+                <div className="min-w-0">
+                  <div className="text-[11px] text-gray-500 font-medium">
                     {formatBengaliDate(tx.date)}
                   </div>
-                  <div className="font-semibold text-gray-800 text-sm mt-0.5">
+                  <div className="font-bold text-gray-800 text-xs sm:text-sm mt-0.5 truncate">
                     {tx.type === 'due' ? 'বাকি' : 'জমা / টাকা পেয়েছি'}
                     {tx.note && <span className="text-xs text-gray-500 font-normal ml-1.5">({tx.note})</span>}
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <div
-                    className={`font-bold text-base ${
+                    className={`font-bold text-sm sm:text-base ${
                       tx.type === 'due' ? 'text-[#b83a14]' : 'text-emerald-600'
                     }`}
                   >
@@ -291,7 +298,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
                   </div>
                   <button
                     onClick={() => setTxToDelete({ id: tx.id, amount: tx.amount })}
-                    className="text-xs text-gray-400 hover:text-red-600 transition font-medium mt-0.5"
+                    className="text-[11px] text-gray-400 hover:text-red-600 transition font-medium"
                   >
                     বাতিল করুন
                   </button>
@@ -299,22 +306,11 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
               </div>
             ))
           ) : (
-            <div className="p-6 text-center text-gray-400 text-sm">
+            <div className="p-6 text-center text-gray-400 text-xs sm:text-sm">
               এখনও কোনো লেনদেন লিপিবদ্ধ করা হয়নি।
             </div>
           )}
         </div>
-      </div>
-
-      {/* Remove Customer Button matching image_4c9a67c2.png */}
-      <div className="pt-2">
-        <button
-          onClick={() => setIsDeleteCustOpen(true)}
-          className="flex items-center justify-center gap-1.5 bg-[#fee2e2]/60 hover:bg-[#fecaca] text-[#b83a14] text-xs font-semibold py-2 px-3 rounded-lg transition border border-red-200"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          <span>তালিকা থেকে সরান</span>
-        </button>
       </div>
 
       {/* Delete Customer Confirmation PIN Modal */}

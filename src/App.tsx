@@ -55,78 +55,67 @@ function MainContent() {
         }}
       />
 
-      {/* Main Content Area with Super Smooth Animated Tab Switching */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-5 overflow-x-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={viewKey}
-            initial={{ opacity: 0, y: 10, filter: 'blur(2px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -8, filter: 'blur(2px)' }}
-            transition={{
-              duration: 0.22,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-          >
-            {selectedCustomer ? (
-              <CustomerDetailView
-                customer={selectedCustomer}
-                onBack={handleBackFromCustomerDetail}
-                onOpenDueModal={(cust) => {
-                  setQuickTxCustomer(cust);
-                  setQuickTxType('due');
-                }}
-                onOpenPaymentModal={(cust) => {
-                  setQuickTxCustomer(cust);
-                  setQuickTxType('payment');
-                }}
-              />
-            ) : (
-              <>
-                {activeTab === 'home' && (
-                  <HomeView
-                    onGoToSale={() => setActiveTab('sale')}
-                    onGoToProduct={() => setActiveTab('product')}
-                    onGoToCustomer={() => setActiveTab('customer')}
-                    onSelectCustomer={handleSelectCustomer}
-                    onOpenQuickDue={() => {
-                      setQuickTxCustomer(null);
-                      setQuickTxType('due');
-                    }}
-                    onOpenQuickPayment={() => {
-                      setQuickTxCustomer(null);
-                      setQuickTxType('payment');
-                    }}
-                  />
-                )}
+      {/* Main Content Area - Instant Zero-Lag Tab Switching & Viewport-Fit Layout */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-2.5 sm:px-5">
+        <div key={viewKey} className="w-full">
+          {selectedCustomer ? (
+            <CustomerDetailView
+              customer={selectedCustomer}
+              onBack={handleBackFromCustomerDetail}
+              onOpenDueModal={(cust) => {
+                setQuickTxCustomer(cust);
+                setQuickTxType('due');
+              }}
+              onOpenPaymentModal={(cust) => {
+                setQuickTxCustomer(cust);
+                setQuickTxType('payment');
+              }}
+            />
+          ) : (
+            <>
+              {activeTab === 'home' && (
+                <HomeView
+                  onGoToSale={() => setActiveTab('sale')}
+                  onGoToProduct={() => setActiveTab('product')}
+                  onGoToCustomer={() => setActiveTab('customer')}
+                  onSelectCustomer={handleSelectCustomer}
+                  onOpenQuickDue={() => {
+                    setQuickTxCustomer(null);
+                    setQuickTxType('due');
+                  }}
+                  onOpenQuickPayment={() => {
+                    setQuickTxCustomer(null);
+                    setQuickTxType('payment');
+                  }}
+                />
+              )}
 
-                {activeTab === 'sale' && (
-                  <SaleView
-                    onBack={() => setActiveTab('home')}
-                    onOpenScanner={() => {
-                      setScannerCallback(() => (code: string) => {});
-                    }}
-                    onSaleComplete={(sale) => {
-                      setCompletedSaleReceipt(sale);
-                    }}
-                  />
-                )}
+              {activeTab === 'sale' && (
+                <SaleView
+                  onBack={() => setActiveTab('home')}
+                  onOpenScanner={() => {
+                    setScannerCallback(() => (code: string) => {});
+                  }}
+                  onSaleComplete={(sale) => {
+                    setCompletedSaleReceipt(sale);
+                  }}
+                />
+              )}
 
-                {activeTab === 'product' && (
-                  <ProductView
-                    onOpenScanner={(cb) => setScannerCallback(() => cb)}
-                  />
-                )}
+              {activeTab === 'product' && (
+                <ProductView
+                  onOpenScanner={(cb) => setScannerCallback(() => cb)}
+                />
+              )}
 
-                {activeTab === 'customer' && (
-                  <CustomerListView onSelectCustomer={handleSelectCustomer} />
-                )}
+              {activeTab === 'customer' && (
+                <CustomerListView onSelectCustomer={handleSelectCustomer} />
+              )}
 
-                {activeTab === 'more' && <MoreView />}
-              </>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              {activeTab === 'more' && <MoreView />}
+            </>
+          )}
+        </div>
       </main>
 
       {/* Bottom Navigation Bar */}

@@ -43,7 +43,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 }) => {
   const { settings, updateSettings, customers, transactions, sales, products, cashEntries } = useDokan();
 
-  const [isCompHistoryOpen, setIsCompHistoryOpen] = useState(true);
+  const [isCompHistoryOpen, setIsCompHistoryOpen] = useState(false);
   const [isBalanceAuditOpen, setIsBalanceAuditOpen] = useState(false);
 
   // Aggregated financials (with strict midnight-to-midnight boundary)
@@ -59,219 +59,218 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const computerCount = products.filter((p) => p.mainCategory === 'কম্পিউটার সার্ভিস').length;
 
   return (
-    <div className="pb-24 pt-2 sm:pt-4 space-y-3.5 sm:space-y-4">
-      {/* 1. Onboarding Checklist ("শুরুর কাজ") - Compact & collapsible */}
+    <div className="pb-20 pt-1.5 sm:pt-3 space-y-2.5 sm:space-y-3.5">
+      {/* 1. Onboarding Checklist ("শুরুর কাজ") - Compact 3-col horizontal bar */}
       {!settings.hideOnboarding && (
-        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-xs border border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5 font-bold text-gray-800 text-xs sm:text-sm">
+        <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-gray-200">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1 font-bold text-gray-800 text-xs">
               <span>🚀</span>
               <span>শুরুর কাজ</span>
             </div>
             <button
               onClick={toggleOnboarding}
-              className="text-[11px] px-2 py-0.5 rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 transition active:scale-95"
+              className="text-[10px] px-2 py-0.5 rounded border border-gray-200 text-gray-500 hover:bg-gray-50 transition"
             >
               লুকান
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
-            {/* Task 1: Add product */}
+          <div className="grid grid-cols-3 gap-1.5">
             <button
               onClick={onGoToProduct}
-              className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition text-left"
+              className="flex items-center gap-1.5 p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-left"
             >
               {settings.onboarding.addProduct ? (
-                <div className="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-[3]" />
+                <div className="w-3.5 h-3.5 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
                 </div>
               ) : (
-                <Square className="w-4 h-4 text-gray-400 shrink-0 stroke-[1.8]" />
+                <Square className="w-3.5 h-3.5 text-gray-400 shrink-0 stroke-[1.8]" />
               )}
-              <span className={`text-xs ${settings.onboarding.addProduct ? 'line-through text-gray-400' : 'text-gray-700 font-medium'}`}>
-                পণ্য যোগ করুন
+              <span className={`text-[11px] truncate ${settings.onboarding.addProduct ? 'line-through text-gray-400' : 'text-gray-700 font-semibold'}`}>
+                পণ্য যোগ
               </span>
             </button>
 
-            {/* Task 2: First sale */}
             <button
               onClick={onGoToSale}
-              className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition text-left"
+              className="flex items-center gap-1.5 p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-left"
             >
               {settings.onboarding.firstSale ? (
-                <div className="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-[3]" />
+                <div className="w-3.5 h-3.5 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
                 </div>
               ) : (
-                <Square className="w-4 h-4 text-gray-400 shrink-0 stroke-[1.8]" />
+                <Square className="w-3.5 h-3.5 text-gray-400 shrink-0 stroke-[1.8]" />
               )}
-              <span className={`text-xs ${settings.onboarding.firstSale ? 'line-through text-gray-400' : 'text-gray-700 font-medium'}`}>
-                প্রথম বিক্রি লিখুন
+              <span className={`text-[11px] truncate ${settings.onboarding.firstSale ? 'line-through text-gray-400' : 'text-gray-700 font-semibold'}`}>
+                প্রথম বিক্রি
               </span>
             </button>
 
-            {/* Task 3: Add customer */}
             <button
               onClick={onGoToCustomer}
-              className="flex items-center gap-2 p-2 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition text-left"
+              className="flex items-center gap-1.5 p-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition text-left"
             >
               {settings.onboarding.addCustomer ? (
-                <div className="w-4 h-4 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                  <Check className="w-3 h-3 stroke-[3]" />
+                <div className="w-3.5 h-3.5 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
                 </div>
               ) : (
-                <Square className="w-4 h-4 text-gray-400 shrink-0 stroke-[1.8]" />
+                <Square className="w-3.5 h-3.5 text-gray-400 shrink-0 stroke-[1.8]" />
               )}
-              <span className="text-xs text-gray-700 font-medium">
-                কাস্টমার যোগ করুন
+              <span className="text-[11px] text-gray-700 font-semibold truncate">
+                কাস্টমার যোগ
               </span>
             </button>
           </div>
         </div>
       )}
 
-      {/* 2. Top Trio Financial Cards (মোট ব্যালেন্স, মোট বাকি, স্টকের মূল্য) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+      {/* 2. Top Trio Financial Cards (মোট ব্যালেন্স full width on mobile, মোট বাকি + স্টকের মূল্য 2-col side-by-side) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
         {/* Card 1: মোট ক্যাশ ব্যালেন্স (General Shop Balance) */}
         <div
           onClick={() => setIsBalanceAuditOpen(true)}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-700 to-emerald-800 text-white p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.99] transition group"
+          className="col-span-2 sm:col-span-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-800 text-white p-3 sm:p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.99] transition group"
         >
-          <div className="flex items-center justify-between text-xs text-emerald-100 font-semibold mb-1">
+          <div className="flex items-center justify-between text-xs text-emerald-100 font-semibold">
             <span className="flex items-center gap-1.5">
-              <Wallet className="w-4 h-4 text-emerald-200" />
+              <Wallet className="w-3.5 h-3.5 text-emerald-200" />
               <span>দোকানের মোট ব্যালেন্স</span>
             </span>
             <span className="text-[10px] bg-white/20 group-hover:bg-white/30 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 transition">
               <span>🔍 বিবরণ ও এডিট</span>
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white my-1">
+          <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-white my-0.5">
             {formatTaka(metrics.shopCashBalance)}
           </div>
-          <div className="text-[11px] text-emerald-100/90 font-medium flex items-center justify-between">
-            <span>(কম্পিউটার সার্ভিসের ক্যাশ আলাদা হিসাব)</span>
-            <span className="text-[10px] underline font-semibold text-emerald-200">হিসাব দেখতে ক্লিক করুন</span>
+          <div className="text-[10px] text-emerald-100/90 font-medium flex items-center justify-between">
+            <span>(কম্পিউটার ক্যাশ আলাদা)</span>
+            <span className="underline font-semibold text-emerald-200">হিসাব দেখুন →</span>
           </div>
         </div>
 
         {/* Card 2: মোট বাকি (Total Customer Due) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#b83a14] to-[#962e0e] text-white p-4 shadow-xs">
-          <div className="flex items-center justify-between text-xs text-orange-100 font-semibold mb-1">
-            <span className="flex items-center gap-1.5">
-              <Coins className="w-4 h-4 text-orange-200" />
+        <div
+          onClick={onGoToCustomer}
+          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#b83a14] to-[#962e0e] text-white p-2.5 sm:p-4 shadow-xs cursor-pointer active:scale-[0.99] transition"
+        >
+          <div className="flex items-center justify-between text-[11px] sm:text-xs text-orange-100 font-semibold">
+            <span className="flex items-center gap-1">
+              <Coins className="w-3.5 h-3.5 text-orange-200" />
               <span>মোট বাকি</span>
             </span>
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
+            <span className="text-[9px] bg-white/20 px-1.5 py-0.2 rounded-full font-bold">
               পাওনা
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white my-1">
+          <div className="text-lg sm:text-3xl font-extrabold tracking-tight text-white my-0.5 truncate">
             {formatTaka(metrics.totalDue)}
           </div>
-          <div className="text-[11px] text-orange-100/90 font-medium">
-            {toBengaliNumber(metrics.customersWithDueCount)} জন কাস্টমারের কাছে বাকি
+          <div className="text-[10px] text-orange-100/90 font-medium truncate">
+            {toBengaliNumber(metrics.customersWithDueCount)} জন বাকিদার
           </div>
         </div>
 
         {/* Card 3: স্টকের মোট মূল্য (Total Stock Value) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 to-blue-800 text-white p-4 shadow-xs">
-          <div className="flex items-center justify-between text-xs text-blue-100 font-semibold mb-1">
-            <span className="flex items-center gap-1.5">
-              <Package className="w-4 h-4 text-blue-200" />
-              <span>স্টকের মোট মূল্য</span>
+        <div
+          onClick={onGoToProduct}
+          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-700 to-blue-800 text-white p-2.5 sm:p-4 shadow-xs cursor-pointer active:scale-[0.99] transition"
+        >
+          <div className="flex items-center justify-between text-[11px] sm:text-xs text-blue-100 font-semibold">
+            <span className="flex items-center gap-1">
+              <Package className="w-3.5 h-3.5 text-blue-200" />
+              <span>স্টকের মূল্য</span>
             </span>
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
-              পণ্য সম্পদ
+            <span className="text-[9px] bg-white/20 px-1.5 py-0.2 rounded-full font-bold">
+              স্টক
             </span>
           </div>
-          <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white my-1">
+          <div className="text-lg sm:text-3xl font-extrabold tracking-tight text-white my-0.5 truncate">
             {formatTaka(metrics.totalStockPurchaseValue)}
           </div>
-          <div className="text-[11px] text-blue-100/90 font-medium">
-            বিক্রি মূল্য: {formatTaka(metrics.totalStockSellingValue)}
+          <div className="text-[10px] text-blue-100/90 font-medium truncate">
+            বিক্রি: {formatTaka(metrics.totalStockSellingValue)}
           </div>
         </div>
       </div>
 
-      {/* 3. Action Buttons */}
-      <div className="space-y-2">
+      {/* 3. Action Buttons - Single Compact Row (3 columns) */}
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         <button
           onClick={onGoToSale}
-          className="w-full flex items-center justify-center gap-2 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white py-3 px-4 rounded-xl font-bold text-sm sm:text-base shadow-xs transition"
+          className="flex items-center justify-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
         >
-          <ShoppingCart className="w-5 h-5 stroke-[2.2]" />
-          <span>নতুন বিক্রি</span>
+          <ShoppingCart className="w-4 h-4 stroke-[2.3] shrink-0" />
+          <span className="truncate">নতুন বিক্রি</span>
         </button>
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={onOpenQuickDue}
-            className="flex items-center justify-center gap-1.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>+ বাকি দিলাম</span>
-          </button>
-          <button
-            onClick={onOpenQuickPayment}
-            className="flex items-center justify-center gap-1.5 bg-[#15803d] hover:bg-[#166534] active:scale-[0.99] text-white py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>+ টাকা পেলাম</span>
-          </button>
-        </div>
+        <button
+          onClick={onOpenQuickDue}
+          className="flex items-center justify-center gap-1 bg-[#9a3412] hover:bg-[#7c2d12] active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
+          <span className="truncate">বাকি দিলাম</span>
+        </button>
+
+        <button
+          onClick={onOpenQuickPayment}
+          className="flex items-center justify-center gap-1 bg-[#15803d] hover:bg-[#166534] active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+        >
+          <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
+          <span className="truncate">টাকা পেলাম</span>
+        </button>
       </div>
 
       {/* 4. আজকের সার্বিক হিসাব (রাত ১২টা পর্যন্ত দৈনন্দিন হিসাব) */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-3.5 sm:p-4 shadow-xs">
-        <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-gray-100">
-          <div className="flex items-center gap-1.5 font-bold text-gray-800 text-sm sm:text-base">
-            <Clock className="w-4 h-4 text-[#b83a14]" />
+      <div className="bg-white rounded-xl border border-gray-200 p-2.5 sm:p-3.5 shadow-2xs">
+        <div className="flex items-center justify-between pb-1.5 mb-2 border-b border-gray-100">
+          <div className="flex items-center gap-1.5 font-bold text-gray-800 text-xs sm:text-sm">
+            <Clock className="w-3.5 h-3.5 text-[#b83a14]" />
             <span>আজকের হিসাব (রাত ১২টা পর্যন্ত)</span>
           </div>
-          <span className="text-[11px] text-gray-500 font-semibold bg-gray-100 px-2.5 py-0.5 rounded-full">
+          <span className="text-[10px] text-gray-500 font-semibold bg-gray-100 px-2 py-0.5 rounded-full">
             দৈনিক হিসাব
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {/* Today's Sales */}
-          <div className="p-3 rounded-xl bg-orange-50/70 border border-orange-100">
-            <div className="text-xs text-gray-600 font-semibold">আজকের বিক্রি</div>
-            <div className="text-lg sm:text-2xl font-bold text-[#b83a14] mt-1">
-              {formatTaka(metrics.todaySalesAmount)}
+          <div className="p-2 sm:p-2.5 rounded-xl bg-orange-50/70 border border-orange-100">
+            <div className="text-[11px] text-gray-600 font-semibold flex items-center justify-between">
+              <span>আজকের বিক্রি</span>
+              <span className="text-[10px] text-gray-400">({toBengaliNumber(metrics.todaySalesCount)}টি)</span>
             </div>
-            <div className="text-[11px] text-gray-500 mt-0.5">
-              ({toBengaliNumber(metrics.todaySalesCount)} টি বিক্রি)
+            <div className="text-base sm:text-xl font-bold text-[#b83a14] mt-0.5">
+              {formatTaka(metrics.todaySalesAmount)}
             </div>
           </div>
 
           {/* Today's Due Given */}
-          <div className="p-3 rounded-xl bg-red-50/70 border border-red-100">
-            <div className="text-xs text-gray-600 font-semibold">আজ বাকি দিয়েছি</div>
-            <div className="text-lg sm:text-2xl font-bold text-red-600 mt-1">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-red-50/70 border border-red-100">
+            <div className="text-[11px] text-gray-600 font-semibold">আজ বাকি দিয়েছি</div>
+            <div className="text-base sm:text-xl font-bold text-red-600 mt-0.5">
               {formatTaka(metrics.todayDueGiven)}
             </div>
-            <div className="text-[11px] text-gray-500 mt-0.5">নতুন বকেয়া</div>
           </div>
 
           {/* Today's Cash Collection */}
-          <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100">
-            <div className="text-xs text-gray-600 font-semibold">আজ নগদ আদায়</div>
-            <div className="text-lg sm:text-2xl font-bold text-emerald-600 mt-1">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
+            <div className="text-[11px] text-gray-600 font-semibold">আজ নগদ আদায়</div>
+            <div className="text-base sm:text-xl font-bold text-emerald-600 mt-0.5">
               {formatTaka(metrics.todayMoneyReceived)}
             </div>
-            <div className="text-[11px] text-gray-500 mt-0.5">নগদ বিক্রি + বাকি আদায়</div>
           </div>
 
           {/* Today's Profit */}
-          <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-100">
-            <div className="text-xs text-gray-600 font-semibold">আজকের মোট লাভ</div>
-            <div className="text-lg sm:text-2xl font-bold text-blue-700 mt-1">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+            <div className="text-[11px] text-gray-600 font-semibold">আজকের মোট লাভ</div>
+            <div className="text-base sm:text-xl font-bold text-blue-700 mt-0.5">
               {formatTaka(metrics.todayProfit)}
             </div>
-            <div className="text-[11px] text-gray-500 mt-0.5">বিক্রির লাভ</div>
           </div>
         </div>
       </div>
@@ -450,7 +449,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="lg:col-span-7 bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
           <div className="p-3 sm:p-3.5 border-b border-gray-100 flex items-center justify-between">
             <h3 className="font-bold text-gray-800 text-xs sm:text-sm">
-              সবচেয়ে বেশি বাকি
+              বাকি লিস্ট (বেশি থেকে কম সিরিয়াল)
             </h3>
             <button
               onClick={onGoToCustomer}
@@ -462,15 +461,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <div className="divide-y divide-gray-100 max-h-52 overflow-y-auto">
             {metrics.highestDueCustomers.length > 0 ? (
-              metrics.highestDueCustomers.slice(0, 5).map((cust) => (
+              metrics.highestDueCustomers.map((cust, index) => (
                 <button
                   key={cust.id}
                   onClick={() => onSelectCustomer(cust)}
                   className="w-full flex items-center justify-between p-2.5 sm:p-3 hover:bg-gray-50 transition text-left active:bg-gray-100"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
-                      {cust.name.slice(0, 1)}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-7 h-7 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 border ${
+                        index === 0
+                          ? 'bg-[#b83a14] text-white border-[#b83a14]'
+                          : 'bg-amber-100 text-amber-800 border-amber-200'
+                      }`}
+                    >
+                      {toBengaliNumber(index + 1)}
                     </div>
                     <div className="min-w-0">
                       <div className="font-semibold text-gray-800 text-xs sm:text-sm truncate">

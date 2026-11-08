@@ -168,84 +168,81 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
   }, [products, selectedMainCategory, stockTab, searchQuery]);
 
   return (
-    <div className="space-y-3.5 pb-20 pt-2 sm:pt-4">
+    <div className="h-[calc(100dvh-7rem)] lg:h-auto flex flex-col space-y-2 pb-1 lg:pb-20 pt-1.5 sm:pt-3 overflow-hidden lg:overflow-visible">
       {/* Top Header */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2 shrink-0">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
+          <h2 className="text-base sm:text-xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
             <span>পণ্য তালিকা</span>
-            <span className="text-xs sm:text-sm font-semibold bg-[#b83a14]/10 text-[#b83a14] px-2 py-0.5 rounded-full">
+            <span className="text-xs font-semibold bg-[#b83a14]/10 text-[#b83a14] px-2 py-0.5 rounded-full">
               {toBengaliNumber(products.length)} টি পণ্য
             </span>
           </h2>
         </div>
         <button
           onClick={() => openAddModal()}
-          className="flex items-center gap-1.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white text-sm font-bold px-3.5 sm:px-4 py-2 rounded-xl shadow-xs transition shrink-0"
+          className="flex items-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl shadow-xs transition shrink-0"
         >
-          <Plus className="w-4 h-4 stroke-[3]" />
+          <Plus className="w-3.5 h-3.5 stroke-[3]" />
           <span>+ নতুন পণ্য</span>
         </button>
       </div>
 
       {/* 3 Main Product Sections Tabs (মুদি, স্টেশনারি, কম্পিউটার সার্ভিস) */}
-      <div className="bg-white rounded-xl p-1.5 border border-gray-200 shadow-2xs">
-        <div className="grid grid-cols-4 gap-1 sm:gap-1.5">
+      <div className="bg-white rounded-xl p-1 border border-gray-200 shadow-2xs shrink-0">
+        <div className="grid grid-cols-4 gap-1">
           <button
             onClick={() => setSelectedMainCategory('সব')}
-            className={`py-2 px-1 text-center rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
               selectedMainCategory === 'সব'
-                ? 'bg-[#b83a14] text-white shadow-xs'
+                ? 'bg-[#b83a14] text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <span>সব পণ্য</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedMainCategory === 'সব' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
+            <span>সব</span>
+            <span className={`text-[10px] px-1 rounded-full ${selectedMainCategory === 'সব' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
               {toBengaliNumber(counts.all)}
             </span>
           </button>
 
           <button
             onClick={() => setSelectedMainCategory('মুদি')}
-            className={`py-2 px-1 text-center rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
               selectedMainCategory === 'মুদি'
-                ? 'bg-[#b83a14] text-white shadow-xs'
+                ? 'bg-[#b83a14] text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <ShoppingBasket className="w-3.5 h-3.5 hidden xs:inline" />
-            <span>১. মুদি</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedMainCategory === 'মুদি' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
+            <span className="truncate">১. মুদি</span>
+            <span className={`text-[10px] px-1 rounded-full ${selectedMainCategory === 'মুদি' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
               {toBengaliNumber(counts.grocery)}
             </span>
           </button>
 
           <button
             onClick={() => setSelectedMainCategory('স্টেশনারি')}
-            className={`py-2 px-1 text-center rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
               selectedMainCategory === 'স্টেশনারি'
-                ? 'bg-[#b83a14] text-white shadow-xs'
+                ? 'bg-[#b83a14] text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5 hidden xs:inline" />
-            <span>২. স্টেশনারি</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedMainCategory === 'স্টেশনারি' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
+            <span className="truncate">২. স্টেশনারি</span>
+            <span className={`text-[10px] px-1 rounded-full ${selectedMainCategory === 'স্টেশনারি' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
               {toBengaliNumber(counts.stationery)}
             </span>
           </button>
 
           <button
             onClick={() => setSelectedMainCategory('কম্পিউটার সার্ভিস')}
-            className={`py-2 px-1 text-center rounded-lg text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
               selectedMainCategory === 'কম্পিউটার সার্ভিস'
-                ? 'bg-[#b83a14] text-white shadow-xs'
+                ? 'bg-[#b83a14] text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <Monitor className="w-3.5 h-3.5 hidden xs:inline" />
             <span className="truncate">৩. সার্ভিস</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedMainCategory === 'কম্পিউটার সার্ভিস' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
+            <span className={`text-[10px] px-1 rounded-full ${selectedMainCategory === 'কম্পিউটার সার্ভিস' ? 'bg-white/20' : 'bg-gray-200 text-gray-700'}`}>
               {toBengaliNumber(counts.computer)}
             </span>
           </button>
@@ -253,41 +250,41 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
       </div>
 
       {/* Search Input Bar + Stock Status Tabs */}
-      <div className="flex flex-col sm:flex-row gap-2.5">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      <div className="flex items-center gap-1.5 shrink-0">
+        <div className="relative flex-1 min-w-0">
+          <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="পণ্যের নাম, বারকোড বা ক্যাটাগরি..."
-            className="w-full bg-white border border-gray-300 rounded-xl pl-10 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:border-transparent shadow-xs"
+            placeholder="পণ্য বা বারকোড খুঁজুন..."
+            className="w-full bg-white border border-gray-300 rounded-xl pl-8 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:border-transparent shadow-2xs"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs bg-gray-100 rounded-full w-4 h-4 flex items-center justify-center"
             >
               ✕
             </button>
           )}
         </div>
 
-        {/* Stock status filter buttons matching screenshot */}
-        <div className="flex gap-1.5 text-xs font-semibold shrink-0">
+        {/* Stock status filter buttons */}
+        <div className="flex gap-1 text-[11px] font-bold shrink-0">
           <button
             onClick={() => setStockTab('all')}
-            className={`px-3 py-2 rounded-xl border transition ${
+            className={`px-2 py-1.5 rounded-xl border transition ${
               stockTab === 'all'
                 ? 'bg-[#b83a14] text-white border-[#b83a14]'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            সব স্টক
+            সব
           </button>
           <button
             onClick={() => setStockTab('low')}
-            className={`px-3 py-2 rounded-xl border transition ${
+            className={`px-2 py-1.5 rounded-xl border transition ${
               stockTab === 'low'
                 ? 'bg-[#b83a14] text-white border-[#b83a14]'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
@@ -297,19 +294,19 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
           </button>
           <button
             onClick={() => setStockTab('out')}
-            className={`px-3 py-2 rounded-xl border transition ${
+            className={`px-2 py-1.5 rounded-xl border transition ${
               stockTab === 'out'
                 ? 'bg-[#b83a14] text-white border-[#b83a14]'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            স্টক শেষ
+            শেষ
           </button>
         </div>
       </div>
 
-      {/* Product List: Responsive Cards / Rows */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-xs divide-y divide-gray-100 overflow-hidden">
+      {/* Product List: Scrollable within Single Mobile Screen */}
+      <div className="flex-1 min-h-0 bg-white rounded-xl border border-gray-200 shadow-2xs divide-y divide-gray-100 overflow-y-auto">
         {filteredProducts.length > 0 ? (
           filteredProducts.map((prod) => {
             const isLowStock = prod.currentStock <= prod.lowStockAlert && prod.currentStock > 0;
@@ -319,12 +316,12 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
             return (
               <div
                 key={prod.id}
-                className="p-3 sm:p-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/80 transition"
+                className="p-2.5 sm:p-3 flex items-center justify-between gap-2 hover:bg-gray-50/80 transition"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span
-                      className={`text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md font-bold shrink-0 ${
+                      className={`text-[10px] px-1.5 py-0.2 rounded font-bold shrink-0 ${
                         categoryBadge === 'মুদি'
                           ? 'bg-amber-100 text-amber-900 border border-amber-200'
                           : categoryBadge === 'স্টেশনারি'
@@ -334,17 +331,12 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     >
                       {categoryBadge}
                     </span>
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                    <h3 className="font-bold text-gray-900 text-xs sm:text-sm truncate">
                       {prod.name}
                     </h3>
-                    {prod.category && prod.category !== categoryBadge && (
-                      <span className="text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded font-medium shrink-0">
-                        {prod.category}
-                      </span>
-                    )}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-gray-500 mt-1">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-500 mt-0.5">
                     <span>
                       বিক্রি: <strong className="text-gray-900 font-bold">{formatTaka(prod.sellingPrice)}</strong>
                       <span className="text-gray-400">/{prod.unit}</span>
@@ -352,19 +344,14 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     <span>
                       কেনা: <strong className="text-gray-600">{formatTaka(prod.purchasePrice)}</strong>
                     </span>
-                    {prod.barcode && (
-                      <span className="font-mono text-gray-400 hidden xs:inline">
-                        #{prod.barcode}
-                      </span>
-                    )}
                   </div>
                 </div>
 
                 {/* Stock Badge & Actions */}
-                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                   <div className="text-right">
                     <div
-                      className={`text-xs font-bold px-2.5 py-1 rounded-lg inline-block ${
+                      className={`text-[11px] font-bold px-2 py-0.5 rounded-lg inline-block ${
                         isOutOfStock
                           ? 'bg-red-100 text-red-700'
                           : isLowStock
@@ -375,13 +362,13 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                       {toBengaliNumber(prod.currentStock)} {prod.unit}
                     </div>
                     {isLowStock && (
-                      <div className="text-[10px] text-amber-700 mt-0.5 flex items-center justify-end gap-0.5 font-semibold">
+                      <div className="text-[9px] text-amber-700 flex items-center justify-end gap-0.5 font-semibold">
                         <AlertTriangle className="w-2.5 h-2.5" />
                         <span>কম স্টক</span>
                       </div>
                     )}
                     {isOutOfStock && (
-                      <div className="text-[10px] text-red-600 mt-0.5 font-bold">স্টক শেষ</div>
+                      <div className="text-[9px] text-red-600 font-bold">স্টক শেষ</div>
                     )}
                   </div>
 
@@ -392,14 +379,14 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                       className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition"
                       aria-label="সম্পাদনা"
                     >
-                      <Edit2 className="w-4 h-4" />
+                      <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => setProductToDelete(prod)}
                       className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
                       aria-label="মুছুন"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
@@ -407,17 +394,17 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
             );
           })
         ) : (
-          <div className="p-8 text-center text-gray-500 text-sm">
+          <div className="p-6 text-center text-gray-500 text-xs sm:text-sm">
             এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি। উপরে "+ নতুন পণ্য" চাপ দিয়ে পণ্য যোগ করুন।
           </div>
         )}
       </div>
 
-      {/* Modal Dialog matching image_797ab7cc.png with equal 3 sections */}
+      {/* Compact Single-Screen Add/Edit Product Modal (z-[70] sits above BottomNav) */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto transition-all transform duration-200">
-            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 pb-2 border-b border-gray-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-3 bg-black/65 backdrop-blur-xs">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-lg p-3.5 sm:p-5 shadow-2xl max-h-[94dvh] overflow-y-auto">
+            <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2.5 pb-2 border-b border-gray-100 flex items-center justify-between">
               <span>{editingProductId ? 'পণ্য সম্পাদনা' : '+ নতুন পণ্য যোগ'}</span>
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 text-[#b83a14]">
                 {mainCategory}
@@ -425,98 +412,89 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
             </h3>
 
             {formError && (
-              <div className="mb-3 text-xs bg-red-50 text-red-600 p-2.5 rounded-lg border border-red-200 font-semibold">
+              <div className="mb-2 text-xs bg-red-50 text-red-600 p-2 rounded-lg border border-red-200 font-semibold">
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSave} className="space-y-3.5 text-sm">
+            <form onSubmit={handleSave} className="space-y-2.5 text-xs sm:text-sm">
               {/* 3 Prominent Section Buttons */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                  প্রধান সেকশন নির্বাচন করুন <span className="text-[#b83a14]">*</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   <button
                     type="button"
                     onClick={() => handleMainCategoryChange('মুদি')}
-                    className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                    className={`py-2 px-1 rounded-xl border text-center transition flex items-center justify-center gap-1 ${
                       mainCategory === 'মুদি'
-                        ? 'bg-amber-500 text-white border-amber-600 font-bold shadow-xs'
-                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                        ? 'bg-amber-500 text-white border-amber-600 font-bold shadow-2xs'
+                        : 'bg-gray-50 text-gray-700 border-gray-200'
                     }`}
                   >
-                    <ShoppingBasket className="w-5 h-5" />
-                    <span className="text-xs sm:text-sm">১. মুদি</span>
+                    <ShoppingBasket className="w-3.5 h-3.5" />
+                    <span className="text-xs">১. মুদি</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleMainCategoryChange('স্টেশনারি')}
-                    className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                    className={`py-2 px-1 rounded-xl border text-center transition flex items-center justify-center gap-1 ${
                       mainCategory === 'স্টেশনারি'
-                        ? 'bg-blue-600 text-white border-blue-700 font-bold shadow-xs'
-                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                        ? 'bg-blue-600 text-white border-blue-700 font-bold shadow-2xs'
+                        : 'bg-gray-50 text-gray-700 border-gray-200'
                     }`}
                   >
-                    <BookOpen className="w-5 h-5" />
-                    <span className="text-xs sm:text-sm">২. স্টেশনারি</span>
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span className="text-xs">২. স্টেশনারি</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => handleMainCategoryChange('কম্পিউটার সার্ভিস')}
-                    className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                    className={`py-2 px-1 rounded-xl border text-center transition flex items-center justify-center gap-1 ${
                       mainCategory === 'কম্পিউটার সার্ভিস'
-                        ? 'bg-purple-600 text-white border-purple-700 font-bold shadow-xs'
-                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                        ? 'bg-purple-600 text-white border-purple-700 font-bold shadow-2xs'
+                        : 'bg-gray-50 text-gray-700 border-gray-200'
                     }`}
                   >
-                    <Monitor className="w-5 h-5" />
-                    <span className="text-xs sm:text-sm leading-tight">৩. কম্পিউটার সার্ভিস</span>
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span className="text-xs truncate">৩. সার্ভিস</span>
                   </button>
                 </div>
               </div>
 
-              {/* Product Name * */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  পণ্যের নাম <span className="text-[#b83a14]">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={
-                    mainCategory === 'মুদি'
-                      ? 'যেমন: মিনিকেট চাল / তীর সয়াবিন তেল'
-                      : mainCategory === 'স্টেশনারি'
-                      ? 'যেমন: এ৪ পেপার রিম / মাতার বলপেন বক্স'
-                      : 'যেমন: ফটোকপি / চাকরির আবেদন ফরম'
-                  }
-                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white text-sm"
-                />
-              </div>
-
-              {/* Sub-category / Tag */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  সাব-ক্যাটাগরি বা ট্যাগ
-                </label>
-                <input
-                  type="text"
-                  value={subCategory}
-                  onChange={(e) => setSubCategory(e.target.value)}
-                  placeholder="যেমন: চাল, তেল, খাতা, কলম, ফটোকপি"
-                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white text-sm"
-                />
+              {/* Product Name & Sub-category in 2 cols */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                    পণ্যের নাম <span className="text-[#b83a14]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="যেমন: মিনিকেট চাল / বলপেন"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-xs sm:text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                    সাব-ক্যাটাগরি বা ট্যাগ
+                  </label>
+                  <input
+                    type="text"
+                    value={subCategory}
+                    onChange={(e) => setSubCategory(e.target.value)}
+                    placeholder="যেমন: চাল, তেল, খাতা"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-xs sm:text-sm"
+                  />
+                </div>
               </div>
 
               {/* Measurement Type & Unit */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
                     মাপের ধরন
                   </label>
                   <select
@@ -529,23 +507,23 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                       else if (val === 'service') setUnit('কাজ');
                       else setUnit('পিস');
                     }}
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white text-xs font-medium"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-xs font-medium"
                   >
                     <option value="weight">ওজন (কেজি/গ্রাম)</option>
                     <option value="count">পিস/সংখ্যা/রিম</option>
-                    <option value="liquid">তরল (লিটার/মি.লি.)</option>
-                    <option value="service">সার্ভিস/কাজ/পাতা</option>
+                    <option value="liquid">তরল (লিটার)</option>
+                    <option value="service">সার্ভিস/পাতা</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
                     একক
                   </label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value as UnitType)}
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white text-xs font-medium"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-xs font-medium"
                   >
                     <option value="কেজি">কেজি</option>
                     <option value="গ্রাম">গ্রাম</option>
@@ -563,9 +541,9 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
               </div>
 
               {/* Buying Price & Selling Price */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
                     কেনা দাম (৳/{unit})
                   </label>
                   <input
@@ -575,12 +553,12 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     value={purchasePrice}
                     onChange={(e) => setPurchasePrice(e.target.value)}
                     placeholder="০"
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
                     বিক্রির দাম (৳/{unit})
                   </label>
                   <input
@@ -590,16 +568,16 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     value={sellingPrice}
                     onChange={(e) => setSellingPrice(e.target.value)}
                     placeholder="০"
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
                   />
                 </div>
               </div>
 
-              {/* Starting Stock & Low Stock Alert */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Starting Stock, Low Stock & Barcode */}
+              <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    স্টক সংখ্যা ({unit})
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                    স্টক ({unit})
                   </label>
                   <input
                     type="number"
@@ -608,13 +586,13 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     value={currentStock}
                     onChange={(e) => setCurrentStock(e.target.value)}
                     placeholder="০"
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    কম স্টক সতর্কতা ({unit})
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                    সতর্কতা ({unit})
                   </label>
                   <input
                     type="number"
@@ -622,52 +600,51 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     step="any"
                     value={lowStockAlert}
                     onChange={(e) => setLowStockAlert(e.target.value)}
-                    placeholder="১০"
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                    placeholder="৫"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-700 mb-0.5">
+                    বারকোড
+                  </label>
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={barcode}
+                      onChange={(e) => setBarcode(e.target.value)}
+                      placeholder="কোড"
+                      className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-2.5 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-mono text-xs"
+                    />
+                    {onOpenScanner && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenScanner((code) => setBarcode(code))}
+                        className="absolute right-1.5 p-1 text-gray-500 hover:text-[#b83a14]"
+                        title="ক্যামেরা স্ক্যান"
+                      >
+                        <Camera className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Barcode (optional) */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  বারকোড (ঐচ্ছিক)
-                </label>
-                <div className="relative flex items-center">
-                  <input
-                    type="text"
-                    value={barcode}
-                    onChange={(e) => setBarcode(e.target.value)}
-                    placeholder="বারকোড নম্বর লিখুন বা স্ক্যান করুন"
-                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 pr-11 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white font-mono"
-                  />
-                  {onOpenScanner && (
-                    <button
-                      type="button"
-                      onClick={() => onOpenScanner((code) => setBarcode(code))}
-                      className="absolute right-2.5 p-1.5 text-gray-500 hover:text-[#b83a14] bg-white border border-gray-200 rounded-lg shadow-2xs"
-                      title="ক্যামেরা স্ক্যান"
-                    >
-                      <Camera className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Modal Action Buttons */}
-              <div className="pt-2 space-y-2">
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-xl font-bold text-base shadow-xs transition"
-                >
-                  সংরক্ষণ করুন
-                </button>
+              {/* Modal Action Buttons - Side by Side so it fits without scrolling */}
+              <div className="pt-1.5 grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="w-full py-2.5 bg-white hover:bg-gray-50 active:scale-[0.99] text-gray-700 border border-gray-300 rounded-xl font-bold text-sm transition"
+                  className="w-full py-2.5 bg-white hover:bg-gray-50 active:scale-[0.99] text-gray-700 border border-gray-300 rounded-xl font-bold text-xs sm:text-sm transition"
                 >
                   বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+                >
+                  সংরক্ষণ করুন
                 </button>
               </div>
             </form>

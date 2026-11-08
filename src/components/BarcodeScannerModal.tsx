@@ -48,7 +48,7 @@ export const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onScan
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/70 backdrop-blur-xs">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-3 bg-black/70 backdrop-blur-xs">
       <div className="bg-white rounded-2xl w-full max-w-md p-5 shadow-2xl animate-scale-in">
         <div className="flex items-center justify-between pb-3 border-b border-gray-100">
           <div className="flex items-center gap-2">

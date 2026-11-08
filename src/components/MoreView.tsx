@@ -143,40 +143,39 @@ export const MoreView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 pb-24 pt-3">
-      {/* Header matching image_1744dc87.png */}
-      <h2 className="text-xl font-bold text-gray-800 tracking-tight">
-        আরও
+    <div className="h-[calc(100dvh-7rem)] lg:h-auto flex flex-col space-y-2.5 pb-1 lg:pb-20 pt-1.5 sm:pt-3 overflow-hidden lg:overflow-visible">
+      <h2 className="text-base sm:text-xl font-bold text-gray-800 tracking-tight shrink-0">
+        আরও অপশন ও রিপোর্ট
       </h2>
 
-      {/* List items card matching image_1744dc87.png */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-xs divide-y divide-gray-100 overflow-hidden">
+      {/* Compact 2-Column Grid on Mobile & Desktop so all items fit on 1 screen without scrolling */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 overflow-y-auto pb-1">
         {menuItems.map((item) => (
           <button
             key={item.id}
             onClick={() => handleItemClick(item.id)}
-            className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50/80 transition active:bg-gray-100 cursor-pointer"
+            className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex items-center justify-between text-left hover:border-[#b83a14]/40 hover:bg-orange-50/30 transition active:scale-[0.98] cursor-pointer shadow-2xs"
           >
-            <div className="flex items-center gap-3.5">
-              <span className="text-2xl select-none">{item.icon}</span>
-              <div>
-                <div className="font-bold text-gray-800 text-sm sm:text-base">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="text-xl sm:text-2xl select-none shrink-0">{item.icon}</span>
+              <div className="min-w-0">
+                <div className="font-bold text-gray-800 text-xs sm:text-sm truncate">
                   {item.title}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5">
+                <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 line-clamp-1">
                   {item.subtitle}
                 </div>
               </div>
             </div>
 
-            <ChevronRight className="w-4 h-4 text-gray-400" />
+            <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0 ml-1" />
           </button>
         ))}
       </div>
 
       {/* Modal 1: মাল কেনা (Purchases) */}
       {activeModal === 'purchase' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 text-base">📄 মাল কেনার হিসাব</h3>
@@ -276,7 +275,7 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 2: সাপ্লায়ার (Suppliers) */}
       {activeModal === 'supplier' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 text-base">🚚 সাপ্লায়ার তালিকা ও দেনা</h3>
@@ -352,7 +351,7 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 3: খরচ (Expenses) */}
       {activeModal === 'expense' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 text-base">💸 দোকান খরচ হিসাব</h3>
@@ -441,7 +440,7 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 4: ক্যাশ খাতা (Cash Book) */}
       {activeModal === 'cash' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 text-base">📒 ক্যাশ খাতা (নগদ জমা-খরচ)</h3>
@@ -540,7 +539,7 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 5: ব্যবসার রিপোর্ট (Business Analytics) */}
       {activeModal === 'business_report' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 text-base">💹 ব্যবসার লাভ-ক্ষতি ও পারফরম্যান্স</h3>
@@ -597,7 +596,7 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 6: বাকির পূর্ণাঙ্গ তালিকা ও রিপোর্ট */}
       {activeModal === 'due_report' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
           <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <h3 className="font-bold text-gray-900 text-base">📈 বাকির পূর্ণাঙ্গ তালিকা ও রিপোর্ট</h3>
@@ -654,7 +653,7 @@ export const MoreView: React.FC = () => {
         const grandServiceIncome = monthlyReports.reduce((acc, m) => acc + m.serviceIncome, 0);
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
             <div className="bg-white rounded-2xl w-full max-w-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100">
                 <div className="flex items-center gap-2">

@@ -24,7 +24,7 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ isOpen, onClos
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3.5 bg-black/60 backdrop-blur-xs font-['SolaimanLipi',sans-serif]">
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-3.5 bg-black/60 backdrop-blur-xs font-['SolaimanLipi',sans-serif]">
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
