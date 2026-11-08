@@ -6,14 +6,28 @@ import { TabType } from './BottomNav';
 
 interface HeaderProps {
   onOpenSettings: () => void;
+  onOpenInstallModal?: () => void;
   activeTab?: TabType;
   onChangeTab?: (tab: TabType) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenSettings, activeTab, onChangeTab }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenInstallModal, activeTab, onChangeTab }) => {
   const { settings, currentUser, isCloudSyncing } = useDokan();
-  const { isInstallable, install, isInstalled, isIOS } = usePWAInstall();
+  const { isInstallable, install, isInstalled } = usePWAInstall();
   const isOnline = useOnlineStatus();
+
+  const handleInstallClick = async () => {
+    if (isInstallable) {
+      const res = await install();
+      if (!res && onOpenInstallModal) {
+        onOpenInstallModal();
+      }
+    } else if (onOpenInstallModal) {
+      onOpenInstallModal();
+    } else {
+      onOpenSettings();
+    }
+  };
 
   const navItems = [
     { id: 'home' as TabType, label: 'হোম', icon: Home },
@@ -103,8 +117,8 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, activeTab, onCha
           {/* PWA Install Button in Header */}
           {!isInstalled && (
             <button
-              onClick={isInstallable ? install : onOpenSettings}
-              className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs px-2.5 py-1.5 rounded-full font-bold transition border border-white/25 active:scale-95 shadow-2xs"
+              onClick={handleInstallClick}
+              className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs px-2.5 py-1.5 rounded-full font-bold transition border border-white/25 active:scale-95 shadow-2xs cursor-pointer"
               title="অ্যাপ ইনস্টল করুন"
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />

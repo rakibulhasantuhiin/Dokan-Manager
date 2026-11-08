@@ -11,6 +11,7 @@ import { CustomerDetailView } from './components/CustomerDetailView';
 import { MoreView } from './components/MoreView';
 import { QuickTransactionModal } from './components/QuickTransactionModal';
 import { SettingsModal } from './components/SettingsModal';
+import { PWAInstallModal } from './components/PWAInstallModal';
 import { ReceiptModal } from './components/ReceiptModal';
 import { BarcodeScannerModal } from './components/BarcodeScannerModal';
 import { PublicCustomerLedgerView } from './components/PublicCustomerLedgerView';
@@ -25,6 +26,7 @@ function MainContent() {
   const [quickTxType, setQuickTxType] = useState<'due' | 'payment' | null>(null);
   const [quickTxCustomer, setQuickTxCustomer] = useState<Customer | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isPWAInstallModalOpen, setIsPWAInstallModalOpen] = useState(false);
   const [completedSaleReceipt, setCompletedSaleReceipt] = useState<SaleRecord | null>(null);
   const [scannerCallback, setScannerCallback] = useState<((code: string) => void) | null>(null);
 
@@ -44,6 +46,7 @@ function MainContent() {
       {/* Top Header */}
       <Header
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenInstallModal={() => setIsPWAInstallModalOpen(true)}
         activeTab={selectedCustomer ? 'customer' : activeTab}
         onChangeTab={(tab) => {
           setSelectedCustomer(null);
@@ -156,6 +159,12 @@ function MainContent() {
           <SettingsModal onClose={() => setIsSettingsOpen(false)} />
         )}
       </AnimatePresence>
+
+      {/* PWA Install Modal */}
+      <PWAInstallModal
+        isOpen={isPWAInstallModalOpen}
+        onClose={() => setIsPWAInstallModalOpen(false)}
+      />
 
       {/* Printable Receipt Modal */}
       <AnimatePresence>

@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <script>
       (function() {
+        window.deferredPWAInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', function(e) {
+          e.preventDefault();
+          window.deferredPWAInstallPrompt = e;
+        });
+
         try {
           var _origFetch = window.fetch;
           Object.defineProperty(window, 'fetch', {

@@ -16,6 +16,8 @@ import { useDokan } from '../context/DokanContext';
 import { formatTaka, formatBengaliDate, toBengaliNumber } from '../utils/bengali';
 import { calculateMonthlyReport } from '../utils/calculations';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
+import { usePWAInstall } from '../hooks/usePWAInstall';
+import { PWAInstallModal } from './PWAInstallModal';
 
 export const MoreView: React.FC = () => {
   const {
@@ -34,6 +36,9 @@ export const MoreView: React.FC = () => {
     customers,
     transactions,
   } = useDokan();
+
+  const { isInstallable, install, isInstalled } = usePWAInstall();
+  const [showPWAModal, setShowPWAModal] = useState(false);
 
   const [activeModal, setActiveModal] = useState<
     'purchase' | 'supplier' | 'expense' | 'cash' | 'business_report' | 'due_report' | 'monthly_report' | null
@@ -107,8 +112,30 @@ export const MoreView: React.FC = () => {
       title: 'রিপোর্ট',
       subtitle: 'বাকির তালিকা ও দেনা হিসাব',
     },
+    ...(!isInstalled
+      ? [
+          {
+            id: 'install_app' as const,
+            icon: '📱',
+            title: 'অ্যাপ ইনস্টল করুন (Add to Home)',
+            subtitle: 'মোবাইল বা পিসির হোম স্ক্রিনে ১-ক্লিকে অ্যাপ যোগ করুন',
+          },
+        ]
+      : []),
   ];
 
+  const handleItemClick = async (itemId: string) => {
+    if (itemId === 'install_app') {
+      if (isInstallable) {
+        const res = await install();
+        if (!res) setShowPWAModal(true);
+      } else {
+        setShowPWAModal(true);
+      }
+    } else {
+      setActiveModal(itemId as any);
+    }
+  };
 
   return (
     <div className="space-y-4 pb-24 pt-3">
@@ -122,8 +149,8 @@ export const MoreView: React.FC = () => {
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => setActiveModal(item.id)}
-            className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50/80 transition active:bg-gray-100"
+            onClick={() => handleItemClick(item.id)}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50/80 transition active:bg-gray-100 cursor-pointer"
           >
             <div className="flex items-center gap-3.5">
               <span className="text-2xl select-none">{item.icon}</span>
@@ -746,6 +773,12 @@ export const MoreView: React.FC = () => {
           }
         }}
         onClose={() => setExpenseToDelete(null)}
+      />
+
+      {/* PWA Install Modal */}
+      <PWAInstallModal
+        isOpen={showPWAModal}
+        onClose={() => setShowPWAModal(false)}
       />
     </div>
   );

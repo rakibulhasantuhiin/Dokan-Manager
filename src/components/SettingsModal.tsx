@@ -375,11 +375,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 {isInstallable ? (
                   <button
                     type="button"
-                    onClick={install}
+                    onClick={async () => {
+                      const res = await install();
+                      if (!res) setShowInstallHelp(true);
+                    }}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#b83a14] hover:bg-[#a33210] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
-                    <span>এক-ক্লিকে অ্যাপ ইনস্টল করুন</span>
+                    <span>এক-ক্লিকে অ্যাপ ইনস্টল করুন (Add to Home)</span>
                   </button>
                 ) : (
                   <button
