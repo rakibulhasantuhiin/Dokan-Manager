@@ -552,12 +552,10 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // - Mathematical guarantee: Shop uses < 1% of Firebase free tier daily!
   // =========================================================================
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const isIncomingRemoteUpdate = useRef(false);
 
-  // Debounced or immediate cloud sync queue
-  const triggerOptimizedCloudSync = (immediate = false) => {
+  // Instant & immediate cloud sync queue
+  const triggerOptimizedCloudSync = (immediate = true) => {
     if (!currentUser) return;
-    if (isIncomingRemoteUpdate.current) return;
 
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
@@ -595,7 +593,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (immediate) {
       performSync();
     } else {
-      syncTimeoutRef.current = setTimeout(performSync, 800);
+      syncTimeoutRef.current = setTimeout(performSync, 100);
     }
   };
 
@@ -635,33 +633,64 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          isIncomingRemoteUpdate.current = true;
 
-          if (data.settings) setSettings(data.settings);
-          if (Array.isArray(data.customers)) setCustomers(data.customers);
-          if (Array.isArray(data.transactions)) setTransactions(data.transactions);
-          if (Array.isArray(data.products)) setProducts(data.products);
-          if (Array.isArray(data.sales)) setSales(data.sales);
-          if (Array.isArray(data.expenses)) setExpenses(data.expenses);
-          if (Array.isArray(data.suppliers)) setSuppliers(data.suppliers);
-          if (Array.isArray(data.purchases)) setPurchases(data.purchases);
-          if (Array.isArray(data.cashEntries)) setCashEntries(data.cashEntries);
+          if (data.settings) {
+            setSettings(data.settings);
+            stateRef.current.settings = data.settings;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(data.settings)); } catch {}
+          }
+          if (Array.isArray(data.customers)) {
+            setCustomers(data.customers);
+            stateRef.current.customers = data.customers;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(data.customers)); } catch {}
+          }
+          if (Array.isArray(data.transactions)) {
+            setTransactions(data.transactions);
+            stateRef.current.transactions = data.transactions;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(data.transactions)); } catch {}
+          }
+          if (Array.isArray(data.products)) {
+            setProducts(data.products);
+            stateRef.current.products = data.products;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(data.products)); } catch {}
+          }
+          if (Array.isArray(data.sales)) {
+            setSales(data.sales);
+            stateRef.current.sales = data.sales;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'sales', JSON.stringify(data.sales)); } catch {}
+          }
+          if (Array.isArray(data.expenses)) {
+            setExpenses(data.expenses);
+            stateRef.current.expenses = data.expenses;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(data.expenses)); } catch {}
+          }
+          if (Array.isArray(data.suppliers)) {
+            setSuppliers(data.suppliers);
+            stateRef.current.suppliers = data.suppliers;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(data.suppliers)); } catch {}
+          }
+          if (Array.isArray(data.purchases)) {
+            setPurchases(data.purchases);
+            stateRef.current.purchases = data.purchases;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'purchases', JSON.stringify(data.purchases)); } catch {}
+          }
+          if (Array.isArray(data.cashEntries)) {
+            setCashEntries(data.cashEntries);
+            stateRef.current.cashEntries = data.cashEntries;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(data.cashEntries)); } catch {}
+          }
 
           setLastSyncedAt(new Date());
-          setTimeout(() => {
-            isIncomingRemoteUpdate.current = false;
-          }, 500);
         } else {
           // Master doc doesn't exist yet on cloud (first login): customize owner name if available & upload!
           const userDefaultName = currentUser.displayName || currentUser.email?.split('@')[0] || '';
           if (userDefaultName && (settings.ownerName === 'দোকান মালিক' || !settings.ownerName)) {
-            setSettings((prev) => {
-              const updated = { ...prev, ownerName: userDefaultName };
-              stateRef.current.settings = updated;
-              return updated;
-            });
+            const updated = { ...stateRef.current.settings, ownerName: userDefaultName };
+            setSettings(updated);
+            stateRef.current.settings = updated;
+            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(updated)); } catch {}
           }
-          triggerOptimizedCloudSync();
+          triggerOptimizedCloudSync(true);
         }
         setIsCloudSyncing(false);
       },
@@ -671,7 +700,6 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
-
     return () => {
       unsubscribe();
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
@@ -680,12 +708,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Mutations
   const updateSettings = (newSettings: Partial<ShopSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...newSettings };
-      stateRef.current.settings = updated;
-      triggerOptimizedCloudSync();
-      return updated;
-    });
+    const updated = { ...stateRef.current.settings, ...newSettings };
+    setSettings(updated);
+    stateRef.current.settings = updated;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(updated)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const addCustomer = (name: string, phone?: string, address?: string, initialDue = 0): Customer => {
@@ -703,11 +730,10 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       lastTransactionDate: initialDue > 0 ? now : undefined,
     };
 
-    setCustomers((prev) => {
-      const next = [newCustomer, ...prev];
-      stateRef.current.customers = next;
-      return next;
-    });
+    const nextCustomers = [newCustomer, ...stateRef.current.customers];
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
 
     if (initialDue > 0) {
       const initTx: CustomerTransaction = {
@@ -718,47 +744,44 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         date: now,
         note: 'শুরুর বাকি',
       };
-      setTransactions((prev) => {
-        const next = [initTx, ...prev];
-        stateRef.current.transactions = next;
-        return next;
-      });
+      const nextTxs = [initTx, ...stateRef.current.transactions];
+      setTransactions(nextTxs);
+      stateRef.current.transactions = nextTxs;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
     }
 
-    setSettings((prev) => {
-      const next = {
-        ...prev,
-        onboarding: { ...prev.onboarding, addCustomer: true },
-      };
-      stateRef.current.settings = next;
-      return next;
-    });
+    const nextSettings = {
+      ...stateRef.current.settings,
+      onboarding: { ...stateRef.current.settings.onboarding, addCustomer: true },
+    };
+    setSettings(nextSettings);
+    stateRef.current.settings = nextSettings;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(nextSettings)); } catch {}
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
     return newCustomer;
   };
 
   const updateCustomer = (id: string, updates: Partial<Customer>) => {
-    setCustomers((prev) => {
-      const next = prev.map((c) => (c.id === id ? { ...c, ...updates } : c));
-      stateRef.current.customers = next;
-      triggerOptimizedCloudSync();
-      return next;
-    });
+    const nextCustomers = stateRef.current.customers.map((c) => (c.id === id ? { ...c, ...updates } : c));
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const deleteCustomer = (id: string) => {
-    setCustomers((prev) => {
-      const next = prev.filter((c) => c.id !== id);
-      stateRef.current.customers = next;
-      return next;
-    });
-    setTransactions((prev) => {
-      const next = prev.filter((t) => t.customerId !== id);
-      stateRef.current.transactions = next;
-      return next;
-    });
-    triggerOptimizedCloudSync();
+    const nextCustomers = stateRef.current.customers.filter((c) => c.id !== id);
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
+
+    const nextTxs = stateRef.current.transactions.filter((t) => t.customerId !== id);
+    setTransactions(nextTxs);
+    stateRef.current.transactions = nextTxs;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
+
+    triggerOptimizedCloudSync(true);
   };
 
   const addTransaction = (customerId: string, type: 'due' | 'payment', amount: number, note?: string) => {
@@ -772,32 +795,32 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       note,
     };
 
-    const nextTxs = [newTx, ...transactions];
+    const nextTxs = [newTx, ...stateRef.current.transactions];
     setTransactions(nextTxs);
     stateRef.current.transactions = nextTxs;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
 
     const custTxs = nextTxs.filter((t) => t.customerId === customerId);
     const balance = calculateCustomerBalance(custTxs);
 
-    setCustomers((prev) => {
-      const next = prev.map((c) => {
-        if (c.id === customerId) {
-          return {
-            ...c,
-            totalGiven: balance.totalGiven,
-            totalReceived: balance.totalReceived,
-            currentDue: balance.currentDue,
-            lastTransactionDate: now,
-          };
-        }
-        return c;
-      });
-      stateRef.current.customers = next;
-      return next;
+    const nextCustomers = stateRef.current.customers.map((c) => {
+      if (c.id === customerId) {
+        return {
+          ...c,
+          totalGiven: balance.totalGiven,
+          totalReceived: balance.totalReceived,
+          currentDue: balance.currentDue,
+          lastTransactionDate: now,
+        };
+      }
+      return c;
     });
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
 
     if (type === 'payment') {
-      const customer = customers.find((c) => c.id === customerId);
+      const customer = nextCustomers.find((c) => c.id === customerId);
       addCashEntry({
         type: 'in',
         amount,
@@ -807,37 +830,37 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
   };
 
   const deleteTransaction = (id: string) => {
-    const txToDelete = transactions.find((t) => t.id === id);
+    const txToDelete = stateRef.current.transactions.find((t) => t.id === id);
     if (!txToDelete) return;
 
-    const nextTxs = transactions.filter((t) => t.id !== id);
+    const nextTxs = stateRef.current.transactions.filter((t) => t.id !== id);
     setTransactions(nextTxs);
     stateRef.current.transactions = nextTxs;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
 
     const custTxs = nextTxs.filter((t) => t.customerId === txToDelete.customerId);
     const balance = calculateCustomerBalance(custTxs);
 
-    setCustomers((prev) => {
-      const next = prev.map((c) => {
-        if (c.id === txToDelete.customerId) {
-          return {
-            ...c,
-            totalGiven: balance.totalGiven,
-            totalReceived: balance.totalReceived,
-            currentDue: balance.currentDue,
-          };
-        }
-        return c;
-      });
-      stateRef.current.customers = next;
-      return next;
+    const nextCustomers = stateRef.current.customers.map((c) => {
+      if (c.id === txToDelete.customerId) {
+        return {
+          ...c,
+          totalGiven: balance.totalGiven,
+          totalReceived: balance.totalReceived,
+          currentDue: balance.currentDue,
+        };
+      }
+      return c;
     });
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
   };
 
   const addProduct = (prodData: Omit<Product, 'id' | 'createdAt'>): Product => {
@@ -847,41 +870,37 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       createdAt: new Date().toISOString(),
     };
 
-    setProducts((prev) => {
-      const next = [newProduct, ...prev];
-      stateRef.current.products = next;
-      return next;
-    });
+    const nextProducts = [newProduct, ...stateRef.current.products];
+    setProducts(nextProducts);
+    stateRef.current.products = nextProducts;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(nextProducts)); } catch {}
 
-    setSettings((prev) => {
-      const next = {
-        ...prev,
-        onboarding: { ...prev.onboarding, addProduct: true },
-      };
-      stateRef.current.settings = next;
-      return next;
-    });
+    const nextSettings = {
+      ...stateRef.current.settings,
+      onboarding: { ...stateRef.current.settings.onboarding, addProduct: true },
+    };
+    setSettings(nextSettings);
+    stateRef.current.settings = nextSettings;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(nextSettings)); } catch {}
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
     return newProduct;
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) => {
-      const next = prev.map((p) => (p.id === id ? { ...p, ...updates } : p));
-      stateRef.current.products = next;
-      triggerOptimizedCloudSync();
-      return next;
-    });
+    const nextProducts = stateRef.current.products.map((p) => (p.id === id ? { ...p, ...updates } : p));
+    setProducts(nextProducts);
+    stateRef.current.products = nextProducts;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(nextProducts)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const deleteProduct = (id: string) => {
-    setProducts((prev) => {
-      const next = prev.filter((p) => p.id !== id);
-      stateRef.current.products = next;
-      triggerOptimizedCloudSync();
-      return next;
-    });
+    const nextProducts = stateRef.current.products.filter((p) => p.id !== id);
+    setProducts(nextProducts);
+    stateRef.current.products = nextProducts;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(nextProducts)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const completeSale = (saleData: {
@@ -913,27 +932,25 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       profit: saleData.profit,
     };
 
-    setSales((prev) => {
-      const next = [newSale, ...prev];
-      stateRef.current.sales = next;
-      return next;
-    });
+    const nextSales = [newSale, ...stateRef.current.sales];
+    setSales(nextSales);
+    stateRef.current.sales = nextSales;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'sales', JSON.stringify(nextSales)); } catch {}
 
     // Decrease product stock
-    setProducts((prev) => {
-      const next = prev.map((prod) => {
-        const cartItem = saleData.items.find((item) => item.product.id === prod.id);
-        if (cartItem) {
-          return {
-            ...prod,
-            currentStock: Math.max(0, prod.currentStock - cartItem.quantity),
-          };
-        }
-        return prod;
-      });
-      stateRef.current.products = next;
-      return next;
+    const nextProducts = stateRef.current.products.map((prod) => {
+      const cartItem = saleData.items.find((item) => item.product.id === prod.id);
+      if (cartItem) {
+        return {
+          ...prod,
+          currentStock: Math.max(0, prod.currentStock - cartItem.quantity),
+        };
+      }
+      return prod;
     });
+    setProducts(nextProducts);
+    stateRef.current.products = nextProducts;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(nextProducts)); } catch {}
 
     if (saleData.dueAmount > 0 && saleData.customerId) {
       addTransaction(saleData.customerId, 'due', saleData.dueAmount, `বিক্রির বাকি (মেমো #${memoNo})`);
@@ -949,7 +966,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
     return newSale;
   };
 
@@ -958,11 +975,10 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...expense,
       id: 'exp_' + Date.now(),
     };
-    setExpenses((prev) => {
-      const next = [newExp, ...prev];
-      stateRef.current.expenses = next;
-      return next;
-    });
+    const nextExpenses = [newExp, ...stateRef.current.expenses];
+    setExpenses(nextExpenses);
+    stateRef.current.expenses = nextExpenses;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(nextExpenses)); } catch {}
 
     addCashEntry({
       type: 'out',
@@ -972,16 +988,15 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       date: expense.date,
     });
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
   };
 
   const deleteExpense = (id: string) => {
-    setExpenses((prev) => {
-      const next = prev.filter((e) => e.id !== id);
-      stateRef.current.expenses = next;
-      triggerOptimizedCloudSync();
-      return next;
-    });
+    const nextExpenses = stateRef.current.expenses.filter((e) => e.id !== id);
+    setExpenses(nextExpenses);
+    stateRef.current.expenses = nextExpenses;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(nextExpenses)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const addSupplier = (supplier: Omit<SupplierRecord, 'id' | 'totalDebt' | 'totalPaid'>) => {
@@ -991,12 +1006,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       totalDebt: 0,
       totalPaid: 0,
     };
-    setSuppliers((prev) => {
-      const next = [newSup, ...prev];
-      stateRef.current.suppliers = next;
-      triggerOptimizedCloudSync();
-      return next;
-    });
+    const nextSuppliers = [newSup, ...stateRef.current.suppliers];
+    setSuppliers(nextSuppliers);
+    stateRef.current.suppliers = nextSuppliers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(nextSuppliers)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const addPurchase = (purchase: Omit<PurchaseRecord, 'id'>) => {
@@ -1004,28 +1018,26 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...purchase,
       id: 'pur_' + Date.now(),
     };
-    setPurchases((prev) => {
-      const next = [newPur, ...prev];
-      stateRef.current.purchases = next;
-      return next;
-    });
+    const nextPurchases = [newPur, ...stateRef.current.purchases];
+    setPurchases(nextPurchases);
+    stateRef.current.purchases = nextPurchases;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'purchases', JSON.stringify(nextPurchases)); } catch {}
 
     if (purchase.supplierId) {
-      setSuppliers((prev) => {
-        const next = prev.map((s) => {
-          if (s.id === purchase.supplierId) {
-            const unpaid = purchase.amount - purchase.paidAmount;
-            return {
-              ...s,
-              totalDebt: s.totalDebt + unpaid,
-              totalPaid: s.totalPaid + purchase.paidAmount,
-            };
-          }
-          return s;
-        });
-        stateRef.current.suppliers = next;
-        return next;
+      const nextSuppliers = stateRef.current.suppliers.map((s) => {
+        if (s.id === purchase.supplierId) {
+          const unpaid = purchase.amount - purchase.paidAmount;
+          return {
+            ...s,
+            totalDebt: s.totalDebt + unpaid,
+            totalPaid: s.totalPaid + purchase.paidAmount,
+          };
+        }
+        return s;
       });
+      setSuppliers(nextSuppliers);
+      stateRef.current.suppliers = nextSuppliers;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(nextSuppliers)); } catch {}
     }
 
     if (purchase.paidAmount > 0) {
@@ -1038,7 +1050,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    triggerOptimizedCloudSync();
+    triggerOptimizedCloudSync(true);
   };
 
   const addCashEntry = (entry: Omit<CashEntry, 'id'>) => {
@@ -1046,12 +1058,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...entry,
       id: 'cash_' + Date.now() + Math.random().toString(36).substring(2, 5),
     };
-    setCashEntries((prev) => {
-      const next = [newEntry, ...prev];
-      stateRef.current.cashEntries = next;
-      return next;
-    });
-    triggerOptimizedCloudSync();
+    const nextCashEntries = [newEntry, ...stateRef.current.cashEntries];
+    setCashEntries(nextCashEntries);
+    stateRef.current.cashEntries = nextCashEntries;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCashEntries)); } catch {}
+    triggerOptimizedCloudSync(true);
   };
 
   const resetAllData = () => {
