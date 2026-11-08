@@ -81,20 +81,21 @@ interface DokanContextType {
 const STORAGE_KEY_PREFIX = 'dokan_manager_';
 
 const DEFAULT_SETTINGS: ShopSettings = {
-  shopName: 'TAWAKKUL CORNER',
-  ownerName: 'রাকিবুল হাসান তোহিন',
-  phone: '01700-000000',
-  address: 'বাজার রোড, ঢাকা',
+  shopName: 'আমার দোকান',
+  ownerName: 'দোকান মালিক',
+  phone: '',
+  address: '',
   hideOnboarding: false,
   onboarding: {
     addProduct: false,
     firstSale: false,
-    addCustomer: true,
+    addCustomer: false,
   },
 };
 
 const DEFAULT_CUSTOMERS: Customer[] = [];
 const DEFAULT_TRANSACTIONS: CustomerTransaction[] = [];
+
 
 const DEFAULT_PRODUCTS: Product[] = [
   // ১. মুদি (Grocery)
@@ -107,7 +108,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'কেজি',
     purchasePrice: 65,
     sellingPrice: 72,
-    currentStock: 250,
+    currentStock: 0,
     lowStockAlert: 20,
     barcode: '8901234001',
     createdAt: new Date().toISOString(),
@@ -121,7 +122,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'লিটার',
     purchasePrice: 165,
     sellingPrice: 175,
-    currentStock: 48,
+    currentStock: 0,
     lowStockAlert: 10,
     barcode: '8901234002',
     createdAt: new Date().toISOString(),
@@ -135,7 +136,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'কেজি',
     purchasePrice: 105,
     sellingPrice: 115,
-    currentStock: 80,
+    currentStock: 0,
     lowStockAlert: 15,
     barcode: '8901234003',
     createdAt: new Date().toISOString(),
@@ -149,7 +150,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'কেজি',
     purchasePrice: 130,
     sellingPrice: 140,
-    currentStock: 12,
+    currentStock: 0,
     lowStockAlert: 15,
     barcode: '8901234004',
     createdAt: new Date().toISOString(),
@@ -163,7 +164,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'প্যাকেট',
     purchasePrice: 38,
     sellingPrice: 42,
-    currentStock: 60,
+    currentStock: 0,
     lowStockAlert: 10,
     barcode: '8901234005',
     createdAt: new Date().toISOString(),
@@ -179,7 +180,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'রিম',
     purchasePrice: 410,
     sellingPrice: 460,
-    currentStock: 35,
+    currentStock: 0,
     lowStockAlert: 5,
     barcode: '8901234006',
     createdAt: new Date().toISOString(),
@@ -193,7 +194,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'পিস',
     purchasePrice: 85,
     sellingPrice: 100,
-    currentStock: 40,
+    currentStock: 0,
     lowStockAlert: 8,
     barcode: '8901234007',
     createdAt: new Date().toISOString(),
@@ -207,7 +208,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'পিস',
     purchasePrice: 35,
     sellingPrice: 45,
-    currentStock: 65,
+    currentStock: 0,
     lowStockAlert: 10,
     barcode: '8901234008',
     createdAt: new Date().toISOString(),
@@ -221,7 +222,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'পিস',
     purchasePrice: 110,
     sellingPrice: 135,
-    currentStock: 18,
+    currentStock: 0,
     lowStockAlert: 4,
     barcode: '8901234009',
     createdAt: new Date().toISOString(),
@@ -237,7 +238,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'পাতা',
     purchasePrice: 1.5,
     sellingPrice: 5,
-    currentStock: 999,
+    currentStock: 0,
     lowStockAlert: 50,
     barcode: '8901234010',
     createdAt: new Date().toISOString(),
@@ -251,7 +252,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'পাতা',
     purchasePrice: 5,
     sellingPrice: 20,
-    currentStock: 500,
+    currentStock: 0,
     lowStockAlert: 30,
     barcode: '8901234011',
     createdAt: new Date().toISOString(),
@@ -265,7 +266,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'কাজ',
     purchasePrice: 10,
     sellingPrice: 100,
-    currentStock: 999,
+    currentStock: 0,
     lowStockAlert: 10,
     barcode: '8901234012',
     createdAt: new Date().toISOString(),
@@ -279,31 +280,15 @@ const DEFAULT_PRODUCTS: Product[] = [
     unit: 'কাজ',
     purchasePrice: 50,
     sellingPrice: 500,
-    currentStock: 999,
+    currentStock: 0,
     lowStockAlert: 5,
     barcode: '8901234013',
     createdAt: new Date().toISOString(),
   },
 ];
 
-const DEFAULT_SUPPLIERS: SupplierRecord[] = [
-  {
-    id: 'sup_1',
-    name: 'সিটি গ্রুপ ডিস্ট্রিবিউটর',
-    phone: '01711223344',
-    company: 'তীর / সিটি গ্রুপ',
-    totalDebt: 15000,
-    totalPaid: 10000,
-  },
-  {
-    id: 'sup_2',
-    name: 'মেঘনা ট্রেডার্স',
-    phone: '01911223344',
-    company: 'ফ্রেশ পণ্য',
-    totalDebt: 8500,
-    totalPaid: 8500,
-  },
-];
+const DEFAULT_SUPPLIERS: SupplierRecord[] = [];
+
 
 const DokanContext = createContext<DokanContextType | undefined>(undefined);
 
@@ -316,11 +301,19 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [settings, setSettings] = useState<ShopSettings>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PREFIX + 'settings');
-      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.shopName === 'TAWAKKUL CORNER' || parsed.ownerName === 'রাকিবুল হাসান তোহিন') {
+          return DEFAULT_SETTINGS;
+        }
+        return parsed;
+      }
+      return DEFAULT_SETTINGS;
     } catch {
       return DEFAULT_SETTINGS;
     }
   });
+
 
   const [customers, setCustomers] = useState<Customer[]>(() => {
     try {
@@ -414,19 +407,12 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_PREFIX + 'expenses');
-      return saved ? JSON.parse(saved) : [
-        {
-          id: 'exp_1',
-          title: 'দোকান বিদ্যুৎ বিল',
-          category: 'বিল',
-          amount: 1450,
-          date: new Date().toISOString(),
-        }
-      ];
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
   });
+
 
   const [suppliers, setSuppliers] = useState<SupplierRecord[]>(() => {
     try {
@@ -568,8 +554,8 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isIncomingRemoteUpdate = useRef(false);
 
-  // Debounced cloud sync queue
-  const triggerOptimizedCloudSync = () => {
+  // Debounced or immediate cloud sync queue
+  const triggerOptimizedCloudSync = (immediate = false) => {
     if (!currentUser) return;
     if (isIncomingRemoteUpdate.current) return;
 
@@ -579,7 +565,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     setIsCloudSyncing(true);
 
-    syncTimeoutRef.current = setTimeout(async () => {
+    const performSync = async () => {
       try {
         const userId = currentUser.uid;
         const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
@@ -604,14 +590,32 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } finally {
         setIsCloudSyncing(false);
       }
-    }, 1200); // 1.2s debounce: bundles rapid edits into a single write!
+    };
+
+    if (immediate) {
+      performSync();
+    } else {
+      syncTimeoutRef.current = setTimeout(performSync, 800);
+    }
   };
+
+  // Instant Auto-Sync on Network Reconnect
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network online reconnected! Triggering instant cloud backup...');
+      triggerOptimizedCloudSync(true);
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [currentUser]);
 
   // Auth observer and check redirect result
   useEffect(() => {
     checkRedirectAuth().catch((err) => console.warn('Redirect auth check:', err));
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
+
       setIsAuthLoading(false);
     });
     return () => unsubscribeAuth();
@@ -648,7 +652,15 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             isIncomingRemoteUpdate.current = false;
           }, 500);
         } else {
-          // Master doc doesn't exist yet on cloud (first login): upload current local data!
+          // Master doc doesn't exist yet on cloud (first login): customize owner name if available & upload!
+          const userDefaultName = currentUser.displayName || currentUser.email?.split('@')[0] || '';
+          if (userDefaultName && (settings.ownerName === 'দোকান মালিক' || !settings.ownerName)) {
+            setSettings((prev) => {
+              const updated = { ...prev, ownerName: userDefaultName };
+              stateRef.current.settings = updated;
+              return updated;
+            });
+          }
           triggerOptimizedCloudSync();
         }
         setIsCloudSyncing(false);
@@ -658,6 +670,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         handleFirestoreError(error, OperationType.GET, `users/${userId}/shop/master`);
       }
     );
+
 
     return () => {
       unsubscribe();
@@ -1094,6 +1107,20 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const handleLogOut = async () => {
+    await logOut();
+    localStorage.clear();
+    setSettings(DEFAULT_SETTINGS);
+    setCustomers(DEFAULT_CUSTOMERS);
+    setTransactions(DEFAULT_TRANSACTIONS);
+    setProducts(DEFAULT_PRODUCTS);
+    setSales([]);
+    setExpenses([]);
+    setSuppliers(DEFAULT_SUPPLIERS);
+    setPurchases([]);
+    setCashEntries([]);
+  };
+
   return (
     <DokanContext.Provider
       value={{
@@ -1105,8 +1132,9 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
-        logOut,
+        logOut: handleLogOut,
         settings,
+
         updateSettings,
         customers,
         addCustomer,

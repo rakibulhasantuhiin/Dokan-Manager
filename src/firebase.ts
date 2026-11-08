@@ -9,6 +9,8 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   signOut,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import rawConfig from '../firebase-applet-config.json';
@@ -29,8 +31,15 @@ const app = initializeApp(firebaseConfig);
 // CRITICAL: The app requires firestoreDatabaseId for custom provisioned databases
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
+
+// Explicitly guarantee lifetime session persistence until user logs out
+setPersistence(auth, browserLocalPersistence).catch((err) => {
+  console.warn('Set persistence error:', err);
+});
+
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
+
 
 export async function signInWithGoogle() {
   try {
