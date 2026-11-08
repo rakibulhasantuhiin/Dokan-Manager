@@ -1,0 +1,12 @@
+{
+  "projectId": "telemsg-app",
+  "appId": "1:209402570311:web:f3cce87fdfded18a803362",
+  "apiKey": "AIzaSyCik2rjcl7TKRiLGhGw8ID5YZepiAJHCSs",
+  "authDomain": "telemsg-app.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-dokanmanager-362705ed-4f05-4063-be54-5fb48162b5a6",
+  "storageBucket": "telemsg-app.firebasestorage.app",
+  "messagingSenderId": "209402570311",
+  "measurementId": "",
+  "oAuthClientId": "209402570311-mqdbgg9jadfhhe1sighrnpob38bc5uui.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
+}

@@ -1,0 +1,6 @@
+{
+  "name": "দোকান ম্যানেজার (Dokan Manager)",
+  "description": "দোকানের বিক্রি, স্টক ও বাকির হিসাব, এক জায়গায়। সম্পূর্ণ অফলাইন এবং PWA সুবিধাসহ সহজ ডিজিটাল খাতা ও পিওএস অ্যাপ।",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
