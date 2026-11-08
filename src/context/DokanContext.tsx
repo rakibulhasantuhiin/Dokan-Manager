@@ -64,6 +64,7 @@ interface DokanContextType {
     dueAmount: number;
     profit: number;
   }) => SaleRecord;
+  deleteSale: (id: string) => void;
   expenses: ExpenseRecord[];
   addExpense: (expense: Omit<ExpenseRecord, 'id'>) => void;
   deleteExpense: (id: string) => void;
@@ -71,8 +72,11 @@ interface DokanContextType {
   addSupplier: (supplier: Omit<SupplierRecord, 'id' | 'totalDebt' | 'totalPaid'>) => void;
   purchases: PurchaseRecord[];
   addPurchase: (purchase: Omit<PurchaseRecord, 'id'>) => void;
+  deletePurchase: (id: string) => void;
   cashEntries: CashEntry[];
   addCashEntry: (entry: Omit<CashEntry, 'id'>) => void;
+  updateCashEntry: (id: string, updates: Partial<CashEntry>) => void;
+  deleteCashEntry: (id: string) => void;
   resetAllData: () => void;
   exportDataJSON: () => string;
   importDataJSON: (jsonStr: string) => boolean;
@@ -798,6 +802,9 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const deleteCustomer = (id: string) => {
+    const custTxs = stateRef.current.transactions.filter((t) => t.customerId === id);
+    const custTxIds = new Set(custTxs.map((t) => t.id));
+
     const nextCustomers = stateRef.current.customers.filter((c) => c.id !== id);
     setCustomers(nextCustomers);
     stateRef.current.customers = nextCustomers;
@@ -808,13 +815,20 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     stateRef.current.transactions = nextTxs;
     try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
 
+    // Clean up cash entries linked to deleted customer's transactions
+    const nextCash = stateRef.current.cashEntries.filter((c) => !c.refId || !custTxIds.has(c.refId));
+    setCashEntries(nextCash);
+    stateRef.current.cashEntries = nextCash;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+
     triggerOptimizedCloudSync(true);
   };
 
   const addTransaction = (customerId: string, type: 'due' | 'payment', amount: number, note?: string) => {
     const now = new Date().toISOString();
+    const txId = 'tx_' + Date.now() + Math.random().toString(36).substring(2, 6);
     const newTx: CustomerTransaction = {
-      id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 6),
+      id: txId,
       customerId,
       type,
       amount,
@@ -854,6 +868,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         category: 'বাকি আদায়',
         description: `${customer?.name || 'কাস্টমার'} থেকে বাকি আদায়`,
         date: now,
+        refId: txId,
       });
     }
 
@@ -886,6 +901,16 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCustomers(nextCustomers);
     stateRef.current.customers = nextCustomers;
     try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
+
+    // Clean up corresponding cash entry if this was a payment collection
+    if (txToDelete.type === 'payment') {
+      const nextCash = stateRef.current.cashEntries.filter(
+        (c) => c.refId !== id && !(c.category === 'বাকি আদায়' && c.amount === txToDelete.amount && c.date === txToDelete.date)
+      );
+      setCashEntries(nextCash);
+      stateRef.current.cashEntries = nextCash;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+    }
 
     triggerOptimizedCloudSync(true);
   };
@@ -990,6 +1015,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         category: 'নগদ বিক্রি',
         description: `পণ্য বিক্রি (মেমো #${memoNo})`,
         date: now,
+        refId: newSale.id,
       });
     }
 
@@ -997,10 +1023,58 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newSale;
   };
 
+  const deleteSale = (id: string) => {
+    const saleToDelete = stateRef.current.sales.find((s) => s.id === id);
+    if (!saleToDelete) return;
+
+    // 1. Remove sale
+    const nextSales = stateRef.current.sales.filter((s) => s.id !== id);
+    setSales(nextSales);
+    stateRef.current.sales = nextSales;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'sales', JSON.stringify(nextSales)); } catch {}
+
+    // 2. Restore stock
+    const nextProducts = stateRef.current.products.map((prod) => {
+      const cartItem = saleToDelete.items.find((item) => item.product.id === prod.id);
+      if (cartItem) {
+        return {
+          ...prod,
+          currentStock: prod.currentStock + cartItem.quantity,
+        };
+      }
+      return prod;
+    });
+    setProducts(nextProducts);
+    stateRef.current.products = nextProducts;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(nextProducts)); } catch {}
+
+    // 3. Remove linked due transaction if any
+    if (saleToDelete.dueAmount > 0 && saleToDelete.customerId) {
+      const memoTag = `মেমো #${saleToDelete.memoNo}`;
+      const dueTx = stateRef.current.transactions.find(
+        (t) => t.customerId === saleToDelete.customerId && t.type === 'due' && (t.note || '').includes(memoTag)
+      );
+      if (dueTx) {
+        deleteTransaction(dueTx.id);
+      }
+    }
+
+    // 4. Remove linked cash entry
+    const nextCash = stateRef.current.cashEntries.filter(
+      (c) => c.refId !== id && !(c.description || '').includes(saleToDelete.memoNo)
+    );
+    setCashEntries(nextCash);
+    stateRef.current.cashEntries = nextCash;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+
+    triggerOptimizedCloudSync(true);
+  };
+
   const addExpense = (expense: Omit<ExpenseRecord, 'id'>) => {
+    const expId = 'exp_' + Date.now();
     const newExp: ExpenseRecord = {
       ...expense,
-      id: 'exp_' + Date.now(),
+      id: expId,
     };
     const nextExpenses = [newExp, ...stateRef.current.expenses];
     setExpenses(nextExpenses);
@@ -1013,16 +1087,28 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       category: expense.category,
       description: expense.title,
       date: expense.date,
+      refId: expId,
     });
 
     triggerOptimizedCloudSync(true);
   };
 
   const deleteExpense = (id: string) => {
+    const expToDelete = stateRef.current.expenses.find((e) => e.id === id);
     const nextExpenses = stateRef.current.expenses.filter((e) => e.id !== id);
     setExpenses(nextExpenses);
     stateRef.current.expenses = nextExpenses;
     try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(nextExpenses)); } catch {}
+
+    if (expToDelete) {
+      const nextCash = stateRef.current.cashEntries.filter(
+        (c) => c.refId !== id && !(c.type === 'out' && c.description === expToDelete.title && c.amount === expToDelete.amount)
+      );
+      setCashEntries(nextCash);
+      stateRef.current.cashEntries = nextCash;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+    }
+
     triggerOptimizedCloudSync(true);
   };
 
@@ -1041,9 +1127,10 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const addPurchase = (purchase: Omit<PurchaseRecord, 'id'>) => {
+    const purId = 'pur_' + Date.now();
     const newPur: PurchaseRecord = {
       ...purchase,
-      id: 'pur_' + Date.now(),
+      id: purId,
     };
     const nextPurchases = [newPur, ...stateRef.current.purchases];
     setPurchases(nextPurchases);
@@ -1074,9 +1161,60 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         category: 'মাল কেনা',
         description: `সাপ্লায়ারকে মাল কেনার পেমেন্ট (${purchase.supplierName})`,
         date: purchase.date,
+        refId: purId,
       });
     }
 
+    triggerOptimizedCloudSync(true);
+  };
+
+  const deletePurchase = (id: string) => {
+    const purToDelete = stateRef.current.purchases.find((p) => p.id === id);
+    if (!purToDelete) return;
+
+    const nextPurchases = stateRef.current.purchases.filter((p) => p.id !== id);
+    setPurchases(nextPurchases);
+    stateRef.current.purchases = nextPurchases;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'purchases', JSON.stringify(nextPurchases)); } catch {}
+
+    if (purToDelete.supplierId) {
+      const nextSuppliers = stateRef.current.suppliers.map((s) => {
+        if (s.id === purToDelete.supplierId) {
+          const unpaid = purToDelete.amount - purToDelete.paidAmount;
+          return {
+            ...s,
+            totalDebt: Math.max(0, s.totalDebt - unpaid),
+            totalPaid: Math.max(0, s.totalPaid - purToDelete.paidAmount),
+          };
+        }
+        return s;
+      });
+      setSuppliers(nextSuppliers);
+      stateRef.current.suppliers = nextSuppliers;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(nextSuppliers)); } catch {}
+    }
+
+    const nextCash = stateRef.current.cashEntries.filter((c) => c.refId !== id);
+    setCashEntries(nextCash);
+    stateRef.current.cashEntries = nextCash;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+
+    triggerOptimizedCloudSync(true);
+  };
+
+  const deleteCashEntry = (id: string) => {
+    const nextCash = stateRef.current.cashEntries.filter((c) => c.id !== id);
+    setCashEntries(nextCash);
+    stateRef.current.cashEntries = nextCash;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+    triggerOptimizedCloudSync(true);
+  };
+
+  const updateCashEntry = (id: string, updates: Partial<CashEntry>) => {
+    const nextCash = stateRef.current.cashEntries.map((c) => (c.id === id ? { ...c, ...updates } : c));
+    setCashEntries(nextCash);
+    stateRef.current.cashEntries = nextCash;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
     triggerOptimizedCloudSync(true);
   };
 
@@ -1187,6 +1325,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         deleteProduct,
         sales,
         completeSale,
+        deleteSale,
         expenses,
         addExpense,
         deleteExpense,
@@ -1194,8 +1333,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addSupplier,
         purchases,
         addPurchase,
+        deletePurchase,
         cashEntries,
         addCashEntry,
+        updateCashEntry,
+        deleteCashEntry,
         resetAllData,
         exportDataJSON,
         importDataJSON,

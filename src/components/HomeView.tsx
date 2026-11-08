@@ -22,6 +22,7 @@ import { useDokan } from '../context/DokanContext';
 import { calculateDashboardMetrics } from '../utils/calculations';
 import { formatTaka, toBengaliNumber, formatBengaliDateTime } from '../utils/bengali';
 import { Customer } from '../types';
+import { CashBalanceAuditModal } from './CashBalanceAuditModal';
 
 interface HomeViewProps {
   onGoToSale: () => void;
@@ -43,6 +44,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const { settings, updateSettings, customers, transactions, sales, products, cashEntries } = useDokan();
 
   const [isCompHistoryOpen, setIsCompHistoryOpen] = useState(true);
+  const [isBalanceAuditOpen, setIsBalanceAuditOpen] = useState(false);
 
   // Aggregated financials (with strict midnight-to-midnight boundary)
   const metrics = calculateDashboardMetrics(customers, transactions, sales, products, cashEntries);
@@ -132,21 +134,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* 2. Top Trio Financial Cards (মোট ব্যালেন্স, মোট বাকি, স্টকের মূল্য) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
         {/* Card 1: মোট ক্যাশ ব্যালেন্স (General Shop Balance) */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-700 to-emerald-800 text-white p-4 shadow-xs">
+        <div
+          onClick={() => setIsBalanceAuditOpen(true)}
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-700 to-emerald-800 text-white p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.99] transition group"
+        >
           <div className="flex items-center justify-between text-xs text-emerald-100 font-semibold mb-1">
             <span className="flex items-center gap-1.5">
               <Wallet className="w-4 h-4 text-emerald-200" />
               <span>দোকানের মোট ব্যালেন্স</span>
             </span>
-            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
-              ক্যাশ
+            <span className="text-[10px] bg-white/20 group-hover:bg-white/30 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 transition">
+              <span>🔍 বিবরণ ও এডিট</span>
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white my-1">
             {formatTaka(metrics.shopCashBalance)}
           </div>
-          <div className="text-[11px] text-emerald-100/90 font-medium">
-            (কম্পিউটার সার্ভিসের ক্যাশ আলাদা হিসাব)
+          <div className="text-[11px] text-emerald-100/90 font-medium flex items-center justify-between">
+            <span>(কম্পিউটার সার্ভিসের ক্যাশ আলাদা হিসাব)</span>
+            <span className="text-[10px] underline font-semibold text-emerald-200">হিসাব দেখতে ক্লিক করুন</span>
           </div>
         </div>
 
@@ -403,7 +409,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* 6. Responsive Two-Column Details (3 Categories + Top Due Customers) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
         {/* LEFT: 3 Product Sections Quick Cards */}
-        <div className="lg:col-span-5 bg-white rounded-xl border border-gray-200 p-3.5 shadow-2xs">
+        <div className="lg:col-span-5 bg-[#ffffff] rounded-xl border border-gray-200 p-3.5 shadow-2xs">
           <div className="text-xs font-bold text-gray-700 mb-2.5 flex items-center justify-between">
             <span>৩টি পণ্য ও সেবা সেকশন:</span>
             <button onClick={onGoToProduct} className="text-[#b83a14] hover:underline font-semibold text-[11px]">
@@ -493,6 +499,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Cash Balance Detail & Audit Modal */}
+      <CashBalanceAuditModal
+        isOpen={isBalanceAuditOpen}
+        onClose={() => setIsBalanceAuditOpen(false)}
+      />
     </div>
   );
 };

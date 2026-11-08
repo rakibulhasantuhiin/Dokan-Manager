@@ -27,12 +27,15 @@ export const MoreView: React.FC = () => {
     addSupplier,
     purchases,
     addPurchase,
+    deletePurchase,
     expenses,
     addExpense,
     deleteExpense,
     cashEntries,
     addCashEntry,
+    deleteCashEntry,
     sales,
+    deleteSale,
     customers,
     transactions,
   } = useDokan();
@@ -51,6 +54,7 @@ export const MoreView: React.FC = () => {
   const [purItems, setPurItems] = useState('');
   const [purAmount, setPurAmount] = useState('');
   const [purPaid, setPurPaid] = useState('');
+  const [purchaseToDelete, setPurchaseToDelete] = useState<{ id: string; itemsSummary: string; amount: number } | null>(null);
 
   // 2. Supplier
   const [supName, setSupName] = useState('');
@@ -68,6 +72,7 @@ export const MoreView: React.FC = () => {
   const [cashAmount, setCashAmount] = useState('');
   const [cashCategory, setCashCategory] = useState('জমা');
   const [cashDesc, setCashDesc] = useState('');
+  const [cashToDelete, setCashToDelete] = useState<{ id: string; description: string; amount: number } | null>(null);
 
   const menuItems = [
     {
@@ -242,13 +247,22 @@ export const MoreView: React.FC = () => {
               <div className="text-xs font-bold text-gray-500 mb-1">পূর্বের কেনাকাটা:</div>
               {purchases.length > 0 ? (
                 purchases.map((p) => (
-                  <div key={p.id} className="py-2 text-xs flex justify-between">
+                  <div key={p.id} className="py-2 text-xs flex justify-between items-center">
                     <div>
                       <div className="font-semibold text-gray-800">{p.itemsSummary}</div>
                       <div className="text-gray-500">{p.supplierName} • {formatBengaliDate(p.date)}</div>
                     </div>
-                    <div className="text-right font-bold text-gray-800">
-                      {formatTaka(p.amount)}
+                    <div className="flex items-center gap-2.5">
+                      <div className="text-right font-bold text-gray-800">
+                        {formatTaka(p.amount)}
+                      </div>
+                      <button
+                        onClick={() => setPurchaseToDelete({ id: p.id, itemsSummary: p.itemsSummary, amount: p.amount })}
+                        className="text-gray-400 hover:text-red-600 p-1 transition"
+                        title="কেনাকাটার হিসাব ডিলিট"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))
@@ -505,8 +519,17 @@ export const MoreView: React.FC = () => {
                     <div className="font-semibold text-gray-800">{c.description}</div>
                     <div className="text-gray-400 text-xs">{formatBengaliDate(c.date)}</div>
                   </div>
-                  <div className={`font-bold ${c.type === 'in' ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {c.type === 'in' ? '+' : '-'}{formatTaka(c.amount)}
+                  <div className="flex items-center gap-2.5">
+                    <div className={`font-bold ${c.type === 'in' ? 'text-emerald-600' : 'text-red-600'}`}>
+                      {c.type === 'in' ? '+' : '-'}{formatTaka(c.amount)}
+                    </div>
+                    <button
+                      onClick={() => setCashToDelete({ id: c.id, description: c.description, amount: c.amount })}
+                      className="text-gray-400 hover:text-red-600 p-1 transition"
+                      title="ক্যাশ এন্ট্রি ডিলিট"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -773,6 +796,34 @@ export const MoreView: React.FC = () => {
           }
         }}
         onClose={() => setExpenseToDelete(null)}
+      />
+
+      {/* Delete Purchase PIN Modal */}
+      <DeletePinConfirmModal
+        isOpen={!!purchaseToDelete}
+        title="মাল কেনার হিসাব মুছে ফেলা"
+        itemName={purchaseToDelete ? `${purchaseToDelete.itemsSummary} (${formatTaka(purchaseToDelete.amount)})` : undefined}
+        onConfirm={() => {
+          if (purchaseToDelete) {
+            deletePurchase(purchaseToDelete.id);
+            setPurchaseToDelete(null);
+          }
+        }}
+        onClose={() => setPurchaseToDelete(null)}
+      />
+
+      {/* Delete Cash Entry PIN Modal */}
+      <DeletePinConfirmModal
+        isOpen={!!cashToDelete}
+        title="ক্যাশ এন্ট্রি মুছে ফেলা"
+        itemName={cashToDelete ? `${cashToDelete.description} (${formatTaka(cashToDelete.amount)})` : undefined}
+        onConfirm={() => {
+          if (cashToDelete) {
+            deleteCashEntry(cashToDelete.id);
+            setCashToDelete(null);
+          }
+        }}
+        onClose={() => setCashToDelete(null)}
       />
 
       {/* PWA Install Modal */}

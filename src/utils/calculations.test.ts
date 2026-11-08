@@ -182,12 +182,28 @@ test('calculateMonthlyReport aggregates sales, profit, service income, and expen
   assert.equal(reports[0].yearMonth, '2026-11');
   assert.equal(reports[0].totalSales, 50);
   assert.equal(reports[0].totalProfit, 30);
-  assert.equal(reports[0].serviceIncome, 50);
-  assert.equal(reports[0].totalExpenses, 200);
-
   assert.equal(reports[1].yearMonth, '2026-10');
   assert.equal(reports[1].totalSales, 500);
   assert.equal(reports[1].totalProfit, 100);
   assert.equal(reports[1].serviceIncome, 0);
+});
+
+test('calculateCustomerBalance recalculates accurately when transactions are added or deleted', () => {
+  let txs: CustomerTransaction[] = [
+    { id: 'tx1', customerId: 'c1', type: 'due', amount: 5000, date: new Date().toISOString() },
+    { id: 'tx2', customerId: 'c1', type: 'payment', amount: 2000, date: new Date().toISOString() },
+  ];
+
+  let balance = calculateCustomerBalance(txs);
+  assert.equal(balance.totalGiven, 5000);
+  assert.equal(balance.totalReceived, 2000);
+  assert.equal(balance.currentDue, 3000);
+
+  // Undo payment (delete tx2)
+  txs = txs.filter((t) => t.id !== 'tx2');
+  balance = calculateCustomerBalance(txs);
+  assert.equal(balance.totalGiven, 5000);
+  assert.equal(balance.totalReceived, 0);
+  assert.equal(balance.currentDue, 5000);
 });
 

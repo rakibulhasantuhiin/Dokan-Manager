@@ -100,6 +100,7 @@ export interface CashEntry {
   category: string;
   description: string;
   date: string;
+  refId?: string;
 }
 
 export interface ShopSettings {
