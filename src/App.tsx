@@ -17,7 +17,12 @@ import { PublicCustomerLedgerView } from './components/PublicCustomerLedgerView'
 import { WelcomeAuthLanding } from './components/WelcomeAuthLanding';
 import { Customer, SaleRecord } from './types';
 
-function MainContent() {
+interface MainContentProps {
+  onShowLogin?: () => void;
+}
+
+function MainContent({ onShowLogin }: MainContentProps) {
+  const { currentUser } = useDokan();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -51,6 +56,22 @@ function MainContent() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
       />
+
+      {/* Guest Demo Mode Login Warning Banner */}
+      {!currentUser && (
+        <div className="bg-[#b83a14] text-white text-xs font-bold py-2 px-3 sm:px-5 flex items-center justify-between shadow-xs sticky top-[57px] z-20">
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="bg-white/20 px-2 py-0.5 rounded text-[10px] uppercase shrink-0">ডেমো মোড</span>
+            <span className="truncate">আজীবন সেভ রাখতে লগইন করুন</span>
+          </div>
+          <button
+            onClick={onShowLogin || (() => setIsSettingsOpen(true))}
+            className="bg-white text-[#b83a14] px-3 py-1 rounded-lg text-xs font-black shadow-2xs hover:bg-orange-50 active:scale-95 transition shrink-0 ml-2 cursor-pointer"
+          >
+            লগইন / সাইন-আপ
+          </button>
+        </div>
+      )}
 
       {/* Main Content Area with Super Smooth Animated Tab Switching */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-5 overflow-x-hidden">
@@ -185,7 +206,24 @@ function MainContent() {
 
 function RootRouter() {
   const { currentUser, isAuthLoading } = useDokan();
-  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('dokan_guest_mode') === 'true';
+  });
+
+  const handleSetGuestMode = (guest: boolean) => {
+    setIsGuestMode(guest);
+    if (guest) {
+      localStorage.setItem('dokan_guest_mode', 'true');
+    } else {
+      localStorage.removeItem('dokan_guest_mode');
+    }
+  };
+
+  // If user logs in successfully, clear guest mode flag
+  if (currentUser && isGuestMode) {
+    localStorage.removeItem('dokan_guest_mode');
+  }
 
   // While checking auth state on boot, show clean branded splash loader
   if (isAuthLoading) {
@@ -199,12 +237,12 @@ function RootRouter() {
     );
   }
 
-  // Not logged in and not explicitly in guest mode: show Welcome & Cloud Login Landing page
+  // Not logged in and not in guest mode: show Welcome & Cloud Login Landing page
   if (!currentUser && !isGuestMode) {
-    return <WelcomeAuthLanding onContinueAsGuest={() => setIsGuestMode(true)} />;
+    return <WelcomeAuthLanding onContinueAsGuest={() => handleSetGuestMode(true)} />;
   }
 
-  return <MainContent />;
+  return <MainContent onShowLogin={() => handleSetGuestMode(false)} />;
 }
 
 export default function App() {
