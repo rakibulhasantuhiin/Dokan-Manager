@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import {
   Store,
@@ -17,6 +17,7 @@ import {
   Receipt,
   RotateCw,
   Zap,
+  RefreshCw,
 } from 'lucide-react';
 import { decodeLedgerToken, PublicLedgerData, calculateLedgerBalances } from '../utils/customerShare';
 import { Customer, Transaction, ShopSettings } from '../types';
@@ -33,12 +34,50 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
 
   const [liveLedgerData, setLiveLedgerData] = useState<PublicLedgerData | null>(initialLedgerData);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     setLiveLedgerData(initialLedgerData);
   }, [initialLedgerData]);
 
-  // Real-time Firestore Live Subscription for Customer Phone
+  const updateLedgerFromMasterDoc = useCallback(
+    (data: any, userId: string, targetCustomerId: string) => {
+      const remoteSettings: ShopSettings = data.settings || {};
+      const remoteCustomers: Customer[] = data.customers || [];
+      const remoteTransactions: Transaction[] = data.transactions || [];
+
+      const matchingCustomer = remoteCustomers.find((c) => c.id === targetCustomerId);
+      if (matchingCustomer) {
+        const customerTxs = remoteTransactions.filter((tx) => tx.customerId === targetCustomerId);
+        const ledgerTxs = calculateLedgerBalances(customerTxs);
+
+        setLiveLedgerData({
+          userId,
+          shop: {
+            name: remoteSettings.shopName || initialLedgerData?.shop.name || 'আমাদের দোকান',
+            phone: remoteSettings.phone || initialLedgerData?.shop.phone,
+            address: remoteSettings.address || initialLedgerData?.shop.address,
+          },
+          customer: {
+            id: matchingCustomer.id,
+            name: matchingCustomer.name,
+            phone: matchingCustomer.phone,
+            address: matchingCustomer.address,
+            currentDue: matchingCustomer.currentDue,
+            totalGiven: matchingCustomer.totalGiven,
+            totalReceived: matchingCustomer.totalReceived,
+          },
+          transactions: ledgerTxs,
+          generatedAt: data.updatedAt || new Date().toISOString(),
+          token: initialLedgerData?.token || `c_${targetCustomerId}`,
+        });
+        setIsLiveConnected(true);
+      }
+    },
+    [initialLedgerData]
+  );
+
+  // Instant getDoc fetch + Real-time Firestore Live Subscription
   useEffect(() => {
     if (!initialLedgerData || !initialLedgerData.userId) return;
 
@@ -46,42 +85,23 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
     const targetCustomerId = initialLedgerData.customer.id;
     const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
 
+    // 1. Immediate fetch on mount/refresh
+    getDoc(masterDocRef)
+      .then((docSnap) => {
+        if (docSnap.exists()) {
+          updateLedgerFromMasterDoc(docSnap.data(), userId, targetCustomerId);
+        }
+      })
+      .catch((err) => {
+        console.warn('Direct master fetch error:', err);
+      });
+
+    // 2. Realtime listener for push updates
     const unsubscribe = onSnapshot(
       masterDocRef,
       (docSnap) => {
         if (docSnap.exists()) {
-          const data = docSnap.data();
-          const remoteSettings: ShopSettings = data.settings || {};
-          const remoteCustomers: Customer[] = data.customers || [];
-          const remoteTransactions: Transaction[] = data.transactions || [];
-
-          const matchingCustomer = remoteCustomers.find((c) => c.id === targetCustomerId);
-          if (matchingCustomer) {
-            const customerTxs = remoteTransactions.filter((tx) => tx.customerId === targetCustomerId);
-            const ledgerTxs = calculateLedgerBalances(customerTxs);
-
-            setLiveLedgerData({
-              userId,
-              shop: {
-                name: remoteSettings.shopName || initialLedgerData.shop.name,
-                phone: remoteSettings.phone || initialLedgerData.shop.phone,
-                address: remoteSettings.address || initialLedgerData.shop.address,
-              },
-              customer: {
-                id: matchingCustomer.id,
-                name: matchingCustomer.name,
-                phone: matchingCustomer.phone,
-                address: matchingCustomer.address,
-                currentDue: matchingCustomer.currentDue,
-                totalGiven: matchingCustomer.totalGiven,
-                totalReceived: matchingCustomer.totalReceived,
-              },
-              transactions: ledgerTxs,
-              generatedAt: data.updatedAt || new Date().toISOString(),
-              token: initialLedgerData.token,
-            });
-            setIsLiveConnected(true);
-          }
+          updateLedgerFromMasterDoc(docSnap.data(), userId, targetCustomerId);
         }
       },
       (err) => {
@@ -90,7 +110,26 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
     );
 
     return () => unsubscribe();
-  }, [initialLedgerData]);
+  }, [initialLedgerData, updateLedgerFromMasterDoc]);
+
+  // Manual trigger to re-fetch live data on demand
+  const handleManualRefresh = async () => {
+    if (!initialLedgerData || !initialLedgerData.userId) return;
+    setIsRefreshing(true);
+    try {
+      const userId = initialLedgerData.userId;
+      const targetCustomerId = initialLedgerData.customer.id;
+      const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
+      const docSnap = await getDoc(masterDocRef);
+      if (docSnap.exists()) {
+        updateLedgerFromMasterDoc(docSnap.data(), userId, targetCustomerId);
+      }
+    } catch (err) {
+      console.warn('Manual refresh fetch error:', err);
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 600);
+    }
+  };
 
   const activeData = liveLedgerData || initialLedgerData;
 
@@ -149,6 +188,14 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
 
           <div className="flex items-center gap-2">
             <button
+              onClick={handleManualRefresh}
+              title="লেটেস্ট হিসাব লোড করুন"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 transition text-white text-xs font-bold"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>রিফ্রেশ</span>
+            </button>
+            <button
               onClick={() => window.print()}
               title="রশিদ প্রিন্ট করুন"
               className="p-2 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 transition text-white"
@@ -198,17 +245,13 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
             <div className="text-xs font-bold text-gray-700">
               {formatBengaliDate(new Date(generatedAt))}
             </div>
-            {isLiveConnected ? (
-              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full font-bold mt-1 shadow-2xs">
-                <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600 animate-pulse" />
-                লাইভ সিঙ্কড
-              </div>
-            ) : (
-              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold mt-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                ডিজিটাল সংরক্ষিত
-              </div>
-            )}
+            <button
+              onClick={handleManualRefresh}
+              className="inline-flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 px-2 py-0.5 rounded-full font-bold mt-1 shadow-2xs transition active:scale-95"
+            >
+              <RefreshCw className={`w-3 h-3 text-emerald-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span>লাইভ সিঙ্কড (রিফ্রেশ করুন)</span>
+            </button>
           </div>
         </div>
 

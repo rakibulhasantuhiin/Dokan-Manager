@@ -101,7 +101,30 @@ export function calculateLedgerBalances(transactions: Transaction[]): PublicLedg
 }
 
 /**
- * Prepares the complete public ledger payload for a given customer
+ * Helper to ensure a persistent Shop Owner ID exists for cloud sync and customer ledger URLs
+ */
+export function getPersistentShopOwnerId(currentUserId?: string | null): string {
+  if (currentUserId && currentUserId.trim().length > 0) {
+    try {
+      localStorage.setItem('dokan_shop_owner_id', currentUserId);
+    } catch {}
+    return currentUserId;
+  }
+  try {
+    const saved = localStorage.getItem('dokan_shop_owner_id');
+    if (saved && saved.trim().length > 0) return saved;
+    const newId = 'owner_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+    localStorage.setItem('dokan_shop_owner_id', newId);
+    return newId;
+  } catch {
+    return 'owner_default_shop';
+  }
+}
+
+/**
+ * Prepares the complete public ledger payload for a given customer.
+ * Uses a deterministic token and static timestamp so the QR code and Share Link
+ * for a specific customer NEVER change, providing ONE PERMANENT QR code & link per customer.
  */
 export function generateCustomerLedgerData(
   customer: Customer,
@@ -112,10 +135,16 @@ export function generateCustomerLedgerData(
   const customerTxs = allTransactions.filter((tx) => tx.customerId === customer.id);
   const ledgerTxs = calculateLedgerBalances(customerTxs);
 
+  const effectiveUserId = getPersistentShopOwnerId(userId);
+
+  // Deterministic token & static date for a specific customer so QR Code and Share URL remain 100% constant!
+  const staticToken = `c_${customer.id}_${effectiveUserId}`;
+  const staticDate = customer.createdAt || '2026-01-01T00:00:00.000Z';
+
   return {
-    userId,
+    userId: effectiveUserId,
     shop: {
-      name: settings.shopName || 'তাওয়াক্কুল কর্নার',
+      name: settings.shopName || 'আমাদের দোকান',
       phone: settings.phone || undefined,
       address: settings.address || undefined,
     },
@@ -129,8 +158,8 @@ export function generateCustomerLedgerData(
       totalReceived: customer.totalReceived,
     },
     transactions: ledgerTxs,
-    generatedAt: new Date().toISOString(),
-    token: `c_${customer.id}_${Date.now().toString(36)}`,
+    generatedAt: staticDate,
+    token: staticToken,
   };
 }
 

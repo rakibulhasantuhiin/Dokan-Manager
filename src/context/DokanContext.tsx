@@ -28,6 +28,7 @@ import {
   CartItem,
 } from '../types';
 import { calculateCustomerBalance } from '../utils/calculations';
+import { getPersistentShopOwnerId } from '../utils/customerShare';
 
 interface DokanContextType {
   currentUser: User | null;
@@ -573,8 +574,6 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', nowTime.toString());
     } catch {}
 
-    if (!currentUser) return;
-
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
@@ -583,7 +582,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const performSync = async () => {
       try {
-        const userId = currentUser.uid;
+        const userId = getPersistentShopOwnerId(currentUser?.uid);
         const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
         const payload = {
           userId,
@@ -602,7 +601,8 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await setDoc(masterDocRef, payload, { merge: true });
         setLastSyncedAt(new Date());
       } catch (err) {
-        handleFirestoreError(err, OperationType.WRITE, `users/${currentUser.uid}/shop/master`);
+        const uid = currentUser?.uid || 'guest';
+        handleFirestoreError(err, OperationType.WRITE, `users/${uid}/shop/master`);
       } finally {
         setIsCloudSyncing(false);
       }
