@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 import { formatTaka, formatBengaliDate, toBengaliNumber } from '../utils/bengali';
+import { calculateMonthlyReport } from '../utils/calculations';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
 
 export const MoreView: React.FC = () => {
@@ -31,11 +32,13 @@ export const MoreView: React.FC = () => {
     addCashEntry,
     sales,
     customers,
+    transactions,
   } = useDokan();
 
   const [activeModal, setActiveModal] = useState<
-    'purchase' | 'supplier' | 'expense' | 'cash' | 'business_report' | 'due_report' | null
+    'purchase' | 'supplier' | 'expense' | 'cash' | 'business_report' | 'due_report' | 'monthly_report' | null
   >(null);
+
 
   // Forms states
   // 1. Purchase
@@ -87,6 +90,12 @@ export const MoreView: React.FC = () => {
       subtitle: 'দিনে কত ঢুকল, কত গেল',
     },
     {
+      id: 'monthly_report' as const,
+      icon: '📅',
+      title: 'মাসিক রিপোর্ট (Monthly Report)',
+      subtitle: 'মাসভিত্তিক বিক্রি, লাভ ও সার্ভিস আয়',
+    },
+    {
       id: 'business_report' as const,
       icon: '💹',
       title: 'ব্যবসার রিপোর্ট',
@@ -96,9 +105,10 @@ export const MoreView: React.FC = () => {
       id: 'due_report' as const,
       icon: '📈',
       title: 'রিপোর্ট',
-      subtitle: 'বাকির তালিকা, মাসের হিসাব',
+      subtitle: 'বাকির তালিকা ও দেনা হিসাব',
     },
   ];
+
 
   return (
     <div className="space-y-4 pb-24 pt-3">
@@ -585,6 +595,144 @@ export const MoreView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Modal 7: মাস ভিত্তিক রিপোর্ট (Monthly Report) */}
+      {activeModal === 'monthly_report' && (() => {
+        const monthlyReports = calculateMonthlyReport(sales, expenses, transactions);
+        const grandTotalSales = monthlyReports.reduce((acc, m) => acc + m.totalSales, 0);
+        const grandTotalProfit = monthlyReports.reduce((acc, m) => acc + m.totalProfit, 0);
+        const grandServiceIncome = monthlyReports.reduce((acc, m) => acc + m.serviceIncome, 0);
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
+            <div className="bg-white rounded-2xl w-full max-w-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📅</span>
+                  <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
+                    মাসিক হিসাব ও রিপোর্ট (Monthly Report)
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Aggregated Top Stat Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                  <div className="text-[11px] font-semibold text-emerald-800">সর্বমোট বিক্রি</div>
+                  <div className="text-base sm:text-lg font-black text-emerald-700 mt-0.5">
+                    {formatTaka(grandTotalSales)}
+                  </div>
+                </div>
+                <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                  <div className="text-[11px] font-semibold text-blue-800">সর্বমোট বিক্রির লাভ</div>
+                  <div className="text-base sm:text-lg font-black text-blue-700 mt-0.5">
+                    {formatTaka(grandTotalProfit)}
+                  </div>
+                </div>
+                <div className="bg-purple-50 border border-purple-200 p-3 rounded-xl col-span-2 sm:col-span-1">
+                  <div className="text-[11px] font-semibold text-purple-800">কম্পিউটার সার্ভিস আয়</div>
+                  <div className="text-base sm:text-lg font-black text-purple-700 mt-0.5">
+                    {formatTaka(grandServiceIncome)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Records List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pt-1">
+                  <h4 className="font-bold text-gray-800 text-sm">মাসওয়ারি বিস্তারিত হিসাব:</h4>
+                  <span className="text-xs font-medium text-gray-500">
+                    মোট {toBengaliNumber(monthlyReports.length)} মাসের রেকর্ড
+                  </span>
+                </div>
+
+                {monthlyReports.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                    এখনও কোনো মাসের বিক্রির ডাটা পাওয়া যায়নি।
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {monthlyReports.map((report) => (
+                      <div
+                        key={report.yearMonth}
+                        className="bg-white border border-gray-200 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-gray-300 transition"
+                      >
+                        {/* Month Header */}
+                        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-[#b83a14]" />
+                            <h5 className="font-extrabold text-gray-900 text-base">
+                              {report.monthNameBengali}
+                            </h5>
+                          </div>
+                          <span className="text-xs bg-gray-100 text-gray-600 font-bold px-2.5 py-1 rounded-full">
+                            {toBengaliNumber(report.salesCount)} টি মেমো
+                          </span>
+                        </div>
+
+                        {/* Breakdown Metrics Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                          <div className="bg-gray-50 p-2.5 rounded-xl">
+                            <div className="text-gray-500 font-medium">মোট বিক্রি</div>
+                            <div className="font-bold text-gray-900 text-sm mt-0.5">
+                              {formatTaka(report.totalSales)}
+                            </div>
+                          </div>
+
+                          <div className="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-100">
+                            <div className="text-emerald-800 font-medium">বিক্রি লাভ</div>
+                            <div className="font-bold text-emerald-700 text-sm mt-0.5">
+                              {formatTaka(report.totalProfit)}
+                            </div>
+                          </div>
+
+                          <div className="bg-purple-50/70 p-2.5 rounded-xl border border-purple-100">
+                            <div className="text-purple-800 font-medium">সার্ভিস আয় / লাভ</div>
+                            <div className="font-bold text-purple-700 text-sm mt-0.5">
+                              {formatTaka(report.serviceIncome)}
+                            </div>
+                            <div className="text-[10px] text-purple-600">
+                              (লাভ: {formatTaka(report.serviceProfit)})
+                            </div>
+                          </div>
+
+                          <div className="bg-red-50/70 p-2.5 rounded-xl border border-red-100">
+                            <div className="text-red-800 font-medium">দোকান খরচ</div>
+                            <div className="font-bold text-red-600 text-sm mt-0.5">
+                              -{formatTaka(report.totalExpenses)}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Net Profit Bar */}
+                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs font-bold">
+                          <div className="text-gray-600">
+                            নিট লাভ (বিক্রি লাভ - খরচ):
+                          </div>
+                          <div
+                            className={`text-sm ${
+                              report.netProfit >= 0 ? 'text-emerald-700' : 'text-red-600'
+                            }`}
+                          >
+                            {formatTaka(report.netProfit)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
 
       {/* Delete Expense PIN Modal */}
       <DeletePinConfirmModal

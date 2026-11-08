@@ -30,6 +30,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 export async function signInWithGoogle() {
   try {
@@ -37,19 +38,10 @@ export async function signInWithGoogle() {
     return result.user;
   } catch (error: any) {
     console.error('Google sign in popup error:', error);
-    // If browser popup is blocked (common in iframes / mobile), fallback to redirect
-    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/cancelled-popup-request') {
-      try {
-        await signInWithRedirect(auth, googleProvider);
-        return null;
-      } catch (redirectError) {
-        console.error('Redirect sign in error:', redirectError);
-        throw error;
-      }
-    }
     throw error;
   }
 }
+
 
 export async function checkRedirectAuth() {
   try {

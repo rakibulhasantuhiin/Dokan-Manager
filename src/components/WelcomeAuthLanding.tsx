@@ -41,10 +41,14 @@ export const WelcomeAuthLanding: React.FC<WelcomeAuthLandingProps> = ({ onContin
       await signInWithGoogle();
     } catch (err: any) {
       console.error('Google sign in error:', err);
-      if (err?.code === 'auth/popup-blocked') {
+      if (
+        err?.code === 'auth/popup-blocked' ||
+        err?.code === 'auth/cancelled-popup-request' ||
+        err?.code === 'auth/popup-closed-by-user'
+      ) {
         setShowPopupHelp(true);
         setErrorMessage(
-          'আপনার ব্রাউজারে পপ-আপ ব্লক করা আছে। আপনি নিচের ইমেইল/পাসওয়ার্ড দিয়ে কোনো পপ-আপ ছাড়াই সরাসরি লগইন বা সাইন-আপ করতে পারেন।'
+          'ব্রাউজারে পপ-আপ ব্লক করা আছে অথবা পপ-আপ বন্ধ করা হয়েছে। নিচের ইমেইল ও পাসওয়ার্ড ট্যাব দিয়ে কোনো পপ-আপ ছাড়াই ১-ক্লিকে সরাসরি লগইন/সাইন-আপ করতে পারেন।'
         );
       } else if (err?.code === 'auth/unauthorized-domain') {
         setErrorMessage(
@@ -57,6 +61,7 @@ export const WelcomeAuthLanding: React.FC<WelcomeAuthLandingProps> = ({ onContin
       setIsLoading(false);
     }
   };
+
 
   const handleEmailAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

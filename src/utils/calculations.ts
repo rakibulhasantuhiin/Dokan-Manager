@@ -7,7 +7,11 @@ import {
   CashEntry,
   ComputerServiceLogItem,
   ComputerServiceMetrics,
+  ExpenseRecord,
 } from '../types';
+import { toBengaliNumber } from './bengali';
+
+
 
 /**
  * Calculates net due and history summaries for a customer from transactions
@@ -258,3 +262,127 @@ export function calculateDashboardMetrics(
     computerService,
   };
 }
+
+export interface MonthlyReportItem {
+  yearMonth: string;
+  monthNameBengali: string;
+  totalSales: number;
+  salesCount: number;
+  totalProfit: number;
+  serviceIncome: number;
+  serviceProfit: number;
+  totalExpenses: number;
+  dueGiven: number;
+  dueCollected: number;
+  netProfit: number;
+}
+
+export function calculateMonthlyReport(
+  sales: SaleRecord[],
+  expenses: ExpenseRecord[] = [],
+  transactions: CustomerTransaction[] = []
+): MonthlyReportItem[] {
+  const monthMap = new Map<string, MonthlyReportItem>();
+
+  const BENGALI_MONTHS = [
+    'জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন',
+    'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'
+  ];
+
+  const getMonthKey = (dateStr: string) => {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  };
+
+  const getBengaliMonthName = (key: string) => {
+    const parts = key.split('-');
+    if (parts.length !== 2) return key;
+    const yearNum = parseInt(parts[0], 10);
+    const monthIdx = parseInt(parts[1], 10) - 1;
+    const monthName = BENGALI_MONTHS[monthIdx] || '';
+    const yearBengali = toBengaliNumber(yearNum);
+    return `${monthName} ${yearBengali}`;
+  };
+
+  const getOrCreate = (key: string): MonthlyReportItem => {
+    let existing = monthMap.get(key);
+    if (!existing) {
+      existing = {
+        yearMonth: key,
+        monthNameBengali: getBengaliMonthName(key),
+        totalSales: 0,
+        salesCount: 0,
+        totalProfit: 0,
+        serviceIncome: 0,
+        serviceProfit: 0,
+        totalExpenses: 0,
+        dueGiven: 0,
+        dueCollected: 0,
+        netProfit: 0,
+      };
+      monthMap.set(key, existing);
+    }
+    return existing;
+  };
+
+  // 1. Sales
+  for (const s of sales) {
+    const key = getMonthKey(s.date);
+    if (!key) continue;
+    const item = getOrCreate(key);
+    item.totalSales += s.grandTotal || 0;
+    item.salesCount += 1;
+    item.totalProfit += s.profit || 0;
+
+    for (const cartItem of s.items || []) {
+      const isComp =
+        cartItem.product?.mainCategory === 'কম্পিউটার সার্ভিস' ||
+        cartItem.product?.measurementType === 'service' ||
+        (cartItem.product?.category || '').includes('কম্পিউটার') ||
+        (cartItem.product?.category || '').includes('ফটোকপি') ||
+        (cartItem.product?.category || '').includes('প্রিন্ট');
+
+      if (isComp) {
+        const lineTotal = cartItem.total || (cartItem.price * cartItem.quantity);
+        const lineProfit = (cartItem.price - (cartItem.product?.purchasePrice || 0)) * cartItem.quantity;
+        item.serviceIncome += lineTotal;
+        item.serviceProfit += lineProfit;
+      }
+    }
+  }
+
+  // 2. Expenses
+  for (const e of expenses) {
+    const key = getMonthKey(e.date);
+    if (!key) continue;
+    const item = getOrCreate(key);
+    item.totalExpenses += e.amount || 0;
+  }
+
+  // 3. Transactions
+  for (const t of transactions) {
+    const key = getMonthKey(t.date);
+    if (!key) continue;
+    const item = getOrCreate(key);
+    if (t.type === 'due') {
+      item.dueGiven += t.amount || 0;
+    } else if (t.type === 'payment') {
+      item.dueCollected += t.amount || 0;
+    }
+  }
+
+  // Convert to array and calculate net profit
+  const results = Array.from(monthMap.values()).map((item) => ({
+    ...item,
+    netProfit: item.totalProfit - item.totalExpenses,
+  }));
+
+  // Sort descending by month key (e.g. 2026-11, 2026-10...)
+  results.sort((a, b) => b.yearMonth.localeCompare(a.yearMonth));
+  return results;
+}
+
