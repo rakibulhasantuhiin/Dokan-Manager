@@ -21,9 +21,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if isOwner(userId);
 
-      // Aggregated Master Shop Document for zero-quota exhaustion
+      // Aggregated Master Shop Document for zero-quota exhaustion & customer live portal
       match /shop/{documentId} {
-        allow read, write: if isOwner(userId);
+        allow read: if true;
+        allow write: if isOwner(userId);
       }
 
       // Settings

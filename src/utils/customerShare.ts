@@ -12,6 +12,7 @@ export interface PublicLedgerTransaction {
 }
 
 export interface PublicLedgerData {
+  userId?: string;
   shop: {
     name: string;
     phone?: string;
@@ -105,12 +106,14 @@ export function calculateLedgerBalances(transactions: Transaction[]): PublicLedg
 export function generateCustomerLedgerData(
   customer: Customer,
   allTransactions: Transaction[],
-  settings: ShopSettings
+  settings: ShopSettings,
+  userId?: string
 ): PublicLedgerData {
   const customerTxs = allTransactions.filter((tx) => tx.customerId === customer.id);
   const ledgerTxs = calculateLedgerBalances(customerTxs);
 
   return {
+    userId,
     shop: {
       name: settings.shopName || 'তাওয়াক্কুল কর্নার',
       phone: settings.phone || undefined,

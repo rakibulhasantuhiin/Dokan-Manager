@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Store,
 } from 'lucide-react';
+import { useDokan } from '../context/DokanContext';
 import { Customer, Transaction, ShopSettings } from '../types';
 import { formatTaka } from '../utils/bengali';
 import {
@@ -35,6 +36,7 @@ export const CustomerLedgerShareModal: React.FC<CustomerLedgerShareModalProps> =
   transactions,
   settings,
 }) => {
+  const { currentUser } = useDokan();
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [shareUrl, setShareUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -42,7 +44,7 @@ export const CustomerLedgerShareModal: React.FC<CustomerLedgerShareModalProps> =
 
   useEffect(() => {
     if (isOpen && customer) {
-      const data = generateCustomerLedgerData(customer, transactions, settings);
+      const data = generateCustomerLedgerData(customer, transactions, settings, currentUser?.uid);
       setLedgerData(data);
       const url = buildCustomerShareUrl(data);
       setShareUrl(url);
@@ -51,7 +53,7 @@ export const CustomerLedgerShareModal: React.FC<CustomerLedgerShareModalProps> =
         .then((qr) => setQrCodeUrl(qr))
         .catch((err) => console.error(err));
     }
-  }, [isOpen, customer, transactions, settings]);
+  }, [isOpen, customer, transactions, settings, currentUser]);
 
   if (!isOpen || !customer) return null;
 

@@ -1,4 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase';
 import {
   Store,
   Phone,
@@ -14,8 +16,10 @@ import {
   ShieldCheck,
   Receipt,
   RotateCw,
+  Zap,
 } from 'lucide-react';
-import { decodeLedgerToken, PublicLedgerData } from '../utils/customerShare';
+import { decodeLedgerToken, PublicLedgerData, calculateLedgerBalances } from '../utils/customerShare';
+import { Customer, Transaction, ShopSettings } from '../types';
 import { formatTaka, toBengaliNumber, formatBengaliDateTime, formatBengaliDate } from '../utils/bengali';
 
 interface PublicCustomerLedgerViewProps {
@@ -23,11 +27,74 @@ interface PublicCustomerLedgerViewProps {
 }
 
 export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> = ({ token }) => {
-  const ledgerData: PublicLedgerData | null = useMemo(() => {
+  const initialLedgerData: PublicLedgerData | null = useMemo(() => {
     return decodeLedgerToken(token);
   }, [token]);
 
-  if (!ledgerData) {
+  const [liveLedgerData, setLiveLedgerData] = useState<PublicLedgerData | null>(initialLedgerData);
+  const [isLiveConnected, setIsLiveConnected] = useState(false);
+
+  useEffect(() => {
+    setLiveLedgerData(initialLedgerData);
+  }, [initialLedgerData]);
+
+  // Real-time Firestore Live Subscription for Customer Phone
+  useEffect(() => {
+    if (!initialLedgerData || !initialLedgerData.userId) return;
+
+    const userId = initialLedgerData.userId;
+    const targetCustomerId = initialLedgerData.customer.id;
+    const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
+
+    const unsubscribe = onSnapshot(
+      masterDocRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const remoteSettings: ShopSettings = data.settings || {};
+          const remoteCustomers: Customer[] = data.customers || [];
+          const remoteTransactions: Transaction[] = data.transactions || [];
+
+          const matchingCustomer = remoteCustomers.find((c) => c.id === targetCustomerId);
+          if (matchingCustomer) {
+            const customerTxs = remoteTransactions.filter((tx) => tx.customerId === targetCustomerId);
+            const ledgerTxs = calculateLedgerBalances(customerTxs);
+
+            setLiveLedgerData({
+              userId,
+              shop: {
+                name: remoteSettings.shopName || initialLedgerData.shop.name,
+                phone: remoteSettings.phone || initialLedgerData.shop.phone,
+                address: remoteSettings.address || initialLedgerData.shop.address,
+              },
+              customer: {
+                id: matchingCustomer.id,
+                name: matchingCustomer.name,
+                phone: matchingCustomer.phone,
+                address: matchingCustomer.address,
+                currentDue: matchingCustomer.currentDue,
+                totalGiven: matchingCustomer.totalGiven,
+                totalReceived: matchingCustomer.totalReceived,
+              },
+              transactions: ledgerTxs,
+              generatedAt: data.updatedAt || new Date().toISOString(),
+              token: initialLedgerData.token,
+            });
+            setIsLiveConnected(true);
+          }
+        }
+      },
+      (err) => {
+        console.warn('Live public customer ledger snapshot error:', err);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [initialLedgerData]);
+
+  const activeData = liveLedgerData || initialLedgerData;
+
+  if (!activeData) {
     return (
       <div className="min-h-screen bg-[#f8f7f4] flex items-center justify-center p-4 font-['SolaimanLipi',sans-serif]">
         <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center shadow-lg border border-gray-200 space-y-4">
@@ -49,7 +116,7 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
     );
   }
 
-  const { shop, customer, transactions, generatedAt } = ledgerData;
+  const { shop, customer, transactions, generatedAt } = activeData;
   const isZeroDue = customer.currentDue <= 0;
 
   // Chronologically reversed for customer view (newest on top)
@@ -127,14 +194,21 @@ export const PublicCustomerLedgerView: React.FC<PublicCustomerLedgerViewProps> =
           </div>
 
           <div className="text-right shrink-0">
-            <div className="text-[11px] text-gray-400 font-medium">হিসাব আপডেট:</div>
+            <div className="text-[11px] text-gray-400 font-medium">সর্বশেষ আপডেট:</div>
             <div className="text-xs font-bold text-gray-700">
               {formatBengaliDate(new Date(generatedAt))}
             </div>
-            <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold mt-1">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-              লাইভ সংরক্ষিত
-            </div>
+            {isLiveConnected ? (
+              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-full font-bold mt-1 shadow-2xs">
+                <Zap className="w-3 h-3 text-emerald-600 fill-emerald-600 animate-pulse" />
+                লাইভ সিঙ্কড
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1 text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full font-bold mt-1">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                ডিজিটাল সংরক্ষিত
+              </div>
+            )}
           </div>
         </div>
 
