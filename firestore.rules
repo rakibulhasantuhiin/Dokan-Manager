@@ -71,5 +71,11 @@ service cloud.firestore {
         allow read, write: if isOwner(userId);
       }
     }
+
+    // Public read-only customer ledger statements (for QR codes and share links)
+    match /public_ledgers/{ledgerToken} {
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
+    }
   }
 }

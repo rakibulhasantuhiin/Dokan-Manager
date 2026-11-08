@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { DokanProvider } from './context/DokanContext';
+import { DokanProvider, useDokan } from './context/DokanContext';
 import { Header } from './components/Header';
 import { BottomNav, TabType } from './components/BottomNav';
 import { HomeView } from './components/HomeView';
@@ -13,6 +13,8 @@ import { QuickTransactionModal } from './components/QuickTransactionModal';
 import { SettingsModal } from './components/SettingsModal';
 import { ReceiptModal } from './components/ReceiptModal';
 import { BarcodeScannerModal } from './components/BarcodeScannerModal';
+import { PublicCustomerLedgerView } from './components/PublicCustomerLedgerView';
+import { WelcomeAuthLanding } from './components/WelcomeAuthLanding';
 import { Customer, SaleRecord } from './types';
 
 function MainContent() {
@@ -181,10 +183,45 @@ function MainContent() {
   );
 }
 
+function RootRouter() {
+  const { currentUser, isAuthLoading } = useDokan();
+  const [isGuestMode, setIsGuestMode] = useState(false);
+
+  // While checking auth state on boot, show clean branded splash loader
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-[#f5f4f0] flex flex-col items-center justify-center p-4 font-['SolaimanLipi',sans-serif]">
+        <div className="w-12 h-12 rounded-2xl bg-[#b83a14] text-white flex items-center justify-center font-bold text-2xl shadow-md animate-pulse">
+          ৳
+        </div>
+        <div className="mt-3 text-sm font-bold text-gray-700">দোকান ম্যানেজার লোড হচ্ছে...</div>
+      </div>
+    );
+  }
+
+  // Not logged in and not explicitly in guest mode: show Welcome & Cloud Login Landing page
+  if (!currentUser && !isGuestMode) {
+    return <WelcomeAuthLanding onContinueAsGuest={() => setIsGuestMode(true)} />;
+  }
+
+  return <MainContent />;
+}
+
 export default function App() {
+  // Check for public customer ledger portal query param (?ledger=...)
+  const [ledgerToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('ledger');
+  });
+
+  if (ledgerToken) {
+    return <PublicCustomerLedgerView token={ledgerToken} />;
+  }
+
   return (
     <DokanProvider>
-      <MainContent />
+      <RootRouter />
     </DokanProvider>
   );
 }

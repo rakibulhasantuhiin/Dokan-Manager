@@ -26,7 +26,10 @@ export interface CustomerTransaction {
   amount: number;
   date: string;
   note?: string;
+  memoNo?: string;
 }
+
+export type Transaction = CustomerTransaction;
 
 export interface Customer {
   id: string;

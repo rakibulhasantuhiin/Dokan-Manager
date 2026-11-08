@@ -32,6 +32,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     resetAllData,
     currentUser,
     signInWithGoogle,
+    signInWithEmail,
+    signUpWithEmail,
     logOut,
   } = useDokan();
 
@@ -45,6 +47,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
+
+  // Email/password login fallback state
+  const [showEmailAuth, setShowEmailAuth] = useState(false);
+  const [emailMode, setEmailMode] = useState<'login' | 'signup'>('login');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -69,7 +78,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
       setTimeout(() => setSaveNotice(null), 3000);
     } catch (err: any) {
       console.error(err);
-      setAuthError(err?.message || 'লগইন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      if (err?.code === 'auth/popup-blocked') {
+        setShowEmailAuth(true);
+        setAuthError('ব্রাউজারে পপ-আপ ব্লক করা আছে। আপনি কোনো পপ-আপ ছাড়াই নিচের ইমেইল/পাসওয়ার্ড দিয়ে সরাসরি লগইন করতে পারেন:');
+      } else {
+        setAuthError(err?.message || 'লগইন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  const handleEmailAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail || !authPassword) {
+      setAuthError('ইমেইল ও পাসওয়ার্ড দিন');
+      return;
+    }
+    try {
+      setIsSigningIn(true);
+      setAuthError(null);
+      if (emailMode === 'signup') {
+        await signUpWithEmail(authEmail.trim(), authPassword, authName.trim());
+      } else {
+        await signInWithEmail(authEmail.trim(), authPassword);
+      }
+      setSaveNotice('ক্লাউড সিঙ্ক সফলভাবে চালু হয়েছে!');
+      setShowEmailAuth(false);
+      setTimeout(() => setSaveNotice(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setAuthError(err?.message || 'ইমেইল বা পাসওয়ার্ড সঠিক নয়।');
     } finally {
       setIsSigningIn(false);
     }
@@ -203,32 +242,101 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                disabled={isSigningIn}
-                onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl text-gray-800 text-xs sm:text-sm font-bold shadow-xs transition active:scale-[0.99]"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>{isSigningIn ? 'লগইন হচ্ছে...' : 'Google দিয়ে লগইন ও ক্লাউড সিঙ্ক চালু করুন'}</span>
-              </button>
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  disabled={isSigningIn}
+                  onClick={handleGoogleLogin}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl text-gray-800 text-xs sm:text-sm font-bold shadow-xs transition active:scale-[0.99] cursor-pointer"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span>{isSigningIn ? 'লগইন হচ্ছে...' : 'Google দিয়ে লগইন ও ক্লাউড সিঙ্ক চালু করুন'}</span>
+                </button>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailAuth(!showEmailAuth)}
+                    className="text-[11px] text-[#b83a14] hover:underline font-semibold"
+                  >
+                    {showEmailAuth ? 'পপ-আপ ছাড়া ইমেইল ফর্ম লুকান' : 'পপ-আপ সমস্যা? ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করুন'}
+                  </button>
+                </div>
+
+                {showEmailAuth && (
+                  <form onSubmit={handleEmailAuthSubmit} className="bg-white p-3 rounded-xl border border-orange-200 space-y-2 mt-2">
+                    <div className="flex bg-gray-100 p-0.5 rounded-lg text-xs font-bold mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setEmailMode('login')}
+                        className={`flex-1 py-1 rounded-md transition ${emailMode === 'login' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'}`}
+                      >
+                        লগইন
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEmailMode('signup')}
+                        className={`flex-1 py-1 rounded-md transition ${emailMode === 'signup' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'}`}
+                      >
+                        নতুন একাউন্ট
+                      </button>
+                    </div>
+
+                    {emailMode === 'signup' && (
+                      <input
+                        type="text"
+                        value={authName}
+                        onChange={(e) => setAuthName(e.target.value)}
+                        placeholder="আপনার নাম"
+                        className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+                      />
+                    )}
+
+                    <input
+                      type="email"
+                      required
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="ইমেইল ঠিকানা (যেমন: user@gmail.com)"
+                      className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+                    />
+
+                    <input
+                      type="password"
+                      required
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"
+                      className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+                    />
+
+                    <button
+                      type="submit"
+                      disabled={isSigningIn}
+                      className="w-full py-2 bg-[#b83a14] hover:bg-[#a33210] text-white text-xs font-bold rounded-lg transition"
+                    >
+                      {isSigningIn ? 'প্রসেসিং হচ্ছে...' : (emailMode === 'signup' ? 'একাউন্ট তৈরি ও সিঙ্ক চালু' : 'লগইন ও সিঙ্ক চালু')}
+                    </button>
+                  </form>
+                )}
+              </div>
             )}
           </div>
         </div>

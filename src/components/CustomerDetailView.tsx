@@ -10,11 +10,13 @@ import {
   Phone,
   Calendar,
   AlertCircle,
+  QrCode,
 } from 'lucide-react';
 import { Customer } from '../types';
 import { useDokan } from '../context/DokanContext';
 import { formatTaka, formatBengaliDate, toBengaliNumber } from '../utils/bengali';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
+import { CustomerLedgerShareModal } from './CustomerLedgerShareModal';
 
 interface CustomerDetailViewProps {
   customer: Customer;
@@ -45,6 +47,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
   const [shareNotice, setShareNotice] = useState<string | null>(null);
   const [isDeleteCustOpen, setIsDeleteCustOpen] = useState(false);
   const [txToDelete, setTxToDelete] = useState<{ id: string; amount: number } | null>(null);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   // Find latest customer instance from state
   const currentCust = customers.find((c) => c.id === customer.id) || customer;
@@ -241,6 +244,15 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
         </button>
       </div>
 
+      {/* Prominent QR Code and Public Link Share Button */}
+      <button
+        onClick={() => setIsQrModalOpen(true)}
+        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-50 to-amber-50 hover:from-orange-100 hover:to-amber-100 border border-orange-200 py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm text-[#b83a14] shadow-2xs transition active:scale-[0.99]"
+      >
+        <QrCode className="w-4 h-4 text-[#b83a14]" />
+        <span>📱 বাকি খাতার পাবলিক লিঙ্ক ও QR কোড</span>
+      </button>
+
       {/* Transactions Section ("লেনদেন") */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
         <div className="p-3.5 border-b border-gray-100 flex items-center justify-between">
@@ -330,6 +342,15 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
           }
         }}
         onClose={() => setTxToDelete(null)}
+      />
+
+      {/* Customer Public Ledger QR Code & Share Link Modal */}
+      <CustomerLedgerShareModal
+        isOpen={isQrModalOpen}
+        onClose={() => setIsQrModalOpen(false)}
+        customer={currentCust}
+        transactions={transactions}
+        settings={settings}
       />
     </div>
   );

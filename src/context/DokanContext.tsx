@@ -5,7 +5,15 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth, db, signInWithGoogle, logOut } from '../firebase';
+import {
+  auth,
+  db,
+  signInWithGoogle,
+  signInWithEmail,
+  signUpWithEmail,
+  checkRedirectAuth,
+  logOut,
+} from '../firebase';
 import { handleFirestoreError, OperationType } from '../utils/firestore-error';
 import {
   Customer,
@@ -27,7 +35,9 @@ interface DokanContextType {
   isCloudSyncing: boolean;
   lastSyncedAt: Date | null;
   quotaOptimized: boolean;
-  signInWithGoogle: () => Promise<User>;
+  signInWithGoogle: () => Promise<User | null>;
+  signInWithEmail: (email: string, pass: string) => Promise<User>;
+  signUpWithEmail: (email: string, pass: string, name?: string) => Promise<User>;
   logOut: () => Promise<void>;
   settings: ShopSettings;
   updateSettings: (newSettings: Partial<ShopSettings>) => void;
@@ -83,31 +93,8 @@ const DEFAULT_SETTINGS: ShopSettings = {
   },
 };
 
-const DEFAULT_CUSTOMER_ID = 'cust_alamin_fokir';
-const DEFAULT_CUSTOMERS: Customer[] = [
-  {
-    id: DEFAULT_CUSTOMER_ID,
-    name: 'আলামিন ফকির',
-    phone: '01812345678',
-    address: 'গ্রাম: পূর্বপাড়া',
-    totalGiven: 6384,
-    totalReceived: 0,
-    currentDue: 6384,
-    createdAt: new Date().toISOString(),
-    lastTransactionDate: new Date().toISOString(),
-  },
-];
-
-const DEFAULT_TRANSACTIONS: CustomerTransaction[] = [
-  {
-    id: 'tx_init_1',
-    customerId: DEFAULT_CUSTOMER_ID,
-    type: 'due',
-    amount: 6384,
-    date: new Date().toISOString(),
-    note: 'পূর্বের বাকি হিসাব',
-  },
-];
+const DEFAULT_CUSTOMERS: Customer[] = [];
+const DEFAULT_TRANSACTIONS: CustomerTransaction[] = [];
 
 const DEFAULT_PRODUCTS: Product[] = [
   // ১. মুদি (Grocery)
@@ -620,8 +607,9 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }, 1200); // 1.2s debounce: bundles rapid edits into a single write!
   };
 
-  // Auth observer
+  // Auth observer and check redirect result
   useEffect(() => {
+    checkRedirectAuth().catch((err) => console.warn('Redirect auth check:', err));
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
       setIsAuthLoading(false);
@@ -1115,6 +1103,8 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         lastSyncedAt,
         quotaOptimized: true,
         signInWithGoogle,
+        signInWithEmail,
+        signUpWithEmail,
         logOut,
         settings,
         updateSettings,

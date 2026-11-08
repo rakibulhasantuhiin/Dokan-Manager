@@ -1,19 +1,21 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, User, Phone, MapPin, ChevronRight } from 'lucide-react';
+import { Plus, Search, User, Phone, MapPin, ChevronRight, QrCode } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 import { Customer } from '../types';
 import { formatTaka, toBengaliNumber } from '../utils/bengali';
+import { CustomerLedgerShareModal } from './CustomerLedgerShareModal';
 
 interface CustomerListViewProps {
   onSelectCustomer: (customer: Customer) => void;
 }
 
 export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCustomer }) => {
-  const { customers, addCustomer } = useDokan();
+  const { customers, addCustomer, transactions, settings } = useDokan();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState<'due' | 'all' | 'nodue'>('due');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [shareCustomer, setShareCustomer] = useState<Customer | null>(null);
 
   // New Customer Form states
   const [name, setName] = useState('');
@@ -148,10 +150,17 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
       <div className="bg-white rounded-xl border border-gray-200 shadow-xs divide-y divide-gray-100 overflow-hidden">
         {filteredCustomers.length > 0 ? (
           filteredCustomers.map((cust) => (
-            <button
+            <div
               key={cust.id}
               onClick={() => onSelectCustomer(cust)}
-              className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left hover:bg-gray-50/80 transition active:bg-gray-100"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  onSelectCustomer(cust);
+                }
+              }}
+              className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left hover:bg-gray-50/80 transition cursor-pointer active:bg-gray-100"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-orange-100 text-[#b83a14] flex items-center justify-center font-bold text-base shrink-0">
@@ -168,7 +177,18 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
                 </div>
               </div>
 
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShareCustomer(cust);
+                  }}
+                  title="বাকি খাতার QR কোড ও লিঙ্ক"
+                  className="p-1.5 text-gray-500 hover:text-[#b83a14] hover:bg-orange-100/70 rounded-lg transition"
+                >
+                  <QrCode className="w-4 h-4" />
+                </button>
                 <div className="text-right">
                   <div
                     className={`font-bold text-sm sm:text-base ${
@@ -183,7 +203,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </div>
-            </button>
+            </div>
           ))
         ) : (
           <div className="p-8 text-center text-gray-500 text-sm">
@@ -279,6 +299,17 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
             </form>
           </div>
         </div>
+      )}
+
+      {/* Quick Customer Ledger Share & QR Modal */}
+      {shareCustomer && (
+        <CustomerLedgerShareModal
+          isOpen={!!shareCustomer}
+          onClose={() => setShareCustomer(null)}
+          customer={shareCustomer}
+          transactions={transactions}
+          settings={settings}
+        />
       )}
     </div>
   );

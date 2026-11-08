@@ -1,5 +1,15 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+} from 'firebase/auth';
 import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
 import rawConfig from '../firebase-applet-config.json';
 
@@ -25,8 +35,51 @@ export async function signInWithGoogle() {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
+  } catch (error: any) {
+    console.error('Google sign in popup error:', error);
+    // If browser popup is blocked (common in iframes / mobile), fallback to redirect
+    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/cancelled-popup-request') {
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return null;
+      } catch (redirectError) {
+        console.error('Redirect sign in error:', redirectError);
+        throw error;
+      }
+    }
+    throw error;
+  }
+}
+
+export async function checkRedirectAuth() {
+  try {
+    const result = await getRedirectResult(auth);
+    return result ? result.user : null;
   } catch (error) {
-    console.error('Google sign in error:', error);
+    console.error('Redirect auth check error:', error);
+    return null;
+  }
+}
+
+export async function signInWithEmail(email: string, pass: string) {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, pass);
+    return result.user;
+  } catch (error) {
+    console.error('Email sign in error:', error);
+    throw error;
+  }
+}
+
+export async function signUpWithEmail(email: string, pass: string, name?: string) {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    if (name && result.user) {
+      await updateProfile(result.user, { displayName: name });
+    }
+    return result.user;
+  } catch (error) {
+    console.error('Email sign up error:', error);
     throw error;
   }
 }
