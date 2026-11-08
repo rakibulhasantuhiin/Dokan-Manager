@@ -101,10 +101,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, activeTab, onCha
           )}
 
           {/* PWA Install Button in Header */}
-          {!isInstalled && (isInstallable || isIOS) && (
+          {!isInstalled && (
             <button
               onClick={isInstallable ? install : onOpenSettings}
-              className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-xs px-2.5 py-1.5 rounded-full font-bold transition border border-white/25 active:scale-95"
+              className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs px-2.5 py-1.5 rounded-full font-bold transition border border-white/25 active:scale-95 shadow-2xs"
               title="অ্যাপ ইনস্টল করুন"
             >
               <Download className="w-3.5 h-3.5 stroke-[2.5]" />

@@ -55,6 +55,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
 
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -342,56 +344,96 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
         </div>
 
         {/* 2. PWA Install Section */}
-        <div className="mt-4 p-4 rounded-xl bg-orange-50/70 border border-orange-200/80">
+        <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50/70 border border-orange-200">
           <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-1.5 font-bold text-gray-900 text-sm">
-                <Smartphone className="w-4 h-4 text-[#b83a14]" />
-                <span>অ্যাপ ইনস্টল করুন (PWA)</span>
+            <div className="flex items-start gap-3">
+              <img
+                src="/pwa-192x192.png"
+                alt="দোকান ম্যানেজার"
+                className="w-11 h-11 rounded-xl shadow-xs border border-orange-200/80 shrink-0 bg-white p-0.5 object-cover"
+              />
+              <div>
+                <div className="flex items-center gap-1.5 font-bold text-gray-900 text-sm">
+                  <Smartphone className="w-4 h-4 text-[#b83a14]" />
+                  <span>মোবাইল ও পিসিতে অ্যাপ ইনস্টল করুন</span>
+                </div>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  হোম স্ক্রিনে আইকন যুক্ত করে আসল অ্যাপের মতো ব্যবহার করুন। ইন্টারনেট ছাড়াই চলবে!
+                </p>
               </div>
-              <p className="text-xs text-gray-600 mt-1">
-                মোবাইল বা পিসিতে সরাসরি অ্যাপ হিসেবে ইনস্টল করুন। ইন্টারনেট ছাড়াও চলবে।
-              </p>
             </div>
+          </div>
 
+          <div className="mt-3 pt-3 border-t border-orange-200/80 flex flex-wrap items-center justify-between gap-2">
             {isInstalled ? (
-              <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full shrink-0">
-                ইনস্টল করা আছে
-              </span>
-            ) : isInstallable ? (
-              <button
-                onClick={install}
-                className="flex items-center gap-1.5 bg-[#b83a14] hover:bg-[#a33210] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-2xs transition shrink-0 active:scale-95"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>ইনস্টল</span>
-              </button>
-            ) : isIOS ? (
-              <button
-                onClick={() => setShowIOSGuide(true)}
-                className="flex items-center gap-1 bg-[#b83a14] text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shadow-2xs shrink-0"
-              >
-                iOS নির্দেশিকা
-              </button>
+              <div className="w-full bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg flex items-center gap-2 text-xs text-emerald-800 font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>দোকান ম্যানেজার অ্যাপটি আপনার ডিভাইসে ইন্সটল করা আছে!</span>
+              </div>
             ) : (
-              <span className="text-[11px] text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded-lg shrink-0">
-                ব্রাউজার মেনু থেকে Install করুন
-              </span>
+              <>
+                {isInstallable ? (
+                  <button
+                    type="button"
+                    onClick={install}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#b83a14] hover:bg-[#a33210] text-white text-xs font-bold px-4 py-2 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>এক-ক্লিকে অ্যাপ ইনস্টল করুন</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowInstallHelp(!showInstallHelp)}
+                    className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-[#b83a14] hover:bg-[#a33210] text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <Smartphone className="w-4 h-4" />
+                    <span>{showInstallHelp ? 'ইনস্টল নির্দেশিকা লুকান' : 'ব্রাউজার থেকে ইনস্টল করার নিয়ম'}</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setShowInstallHelp(!showInstallHelp)}
+                  className="text-xs text-[#b83a14] font-bold hover:underline flex items-center gap-1 ml-auto"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                  <span>{showInstallHelp ? 'সংক্ষিপ্ত করুন' : 'বিস্তারিত নির্দেশিকা'}</span>
+                </button>
+              </>
             )}
           </div>
 
-          {/* iOS Instructions Modal/Accordion */}
-          {showIOSGuide && (
-            <div className="mt-3 pt-3 border-t border-orange-200 text-xs text-gray-700 space-y-1.5 bg-white p-3 rounded-lg">
-              <div className="font-bold text-gray-900">আইফোন / আইপ্যাডে ইনস্টল করার নিয়ম:</div>
-              <p>১. সাফারি (Safari) ব্রাউজারের নিচের <strong>শেয়ার (Share) </strong> বাটনে চাপ দিন।</p>
-              <p>২. নিচে স্ক্রল করে <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> নির্বাচন করুন।</p>
-              <button
-                onClick={() => setShowIOSGuide(false)}
-                className="mt-2 text-xs text-[#b83a14] font-bold hover:underline"
-              >
-                বন্ধ করুন
-              </button>
+          {/* Interactive PWA Installation Instructions */}
+          {showInstallHelp && !isInstalled && (
+            <div className="mt-3 pt-3 border-t border-orange-200 text-xs text-gray-800 space-y-2.5 bg-white p-3.5 rounded-xl border border-orange-100 shadow-2xs">
+              <div className="font-bold text-gray-900 text-sm flex items-center gap-1.5 text-[#b83a14]">
+                <span>📱 ব্রাউজার থেকে অ্যাপ ইনস্টল করার সহজ উপায়</span>
+              </div>
+
+              {isIOS ? (
+                <div className="space-y-1.5 bg-amber-50/80 p-2.5 rounded-lg border border-amber-200 text-xs">
+                  <div className="font-bold text-amber-900">আইফোন / আইপ্যাডে (iOS Safari):</div>
+                  <p>১. সাফারি (Safari) ব্রাউজারের নিচের <strong>শেয়ার (Share <Share2 className="w-3 h-3 inline" />)</strong> আইকনে চাপ দিন।</p>
+                  <p>২. অপশনগুলো নিচে নামিয়ে <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> চাপুন।</p>
+                  <p>৩. উপরে ডান কোণায় <strong>'Add'</strong> এ চাপ দিলে ফোনের হোম স্ক্রিনে সুন্দর লোগো সহ অ্যাপ চলে আসবে!</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="bg-orange-50/80 p-2.5 rounded-lg border border-orange-200 text-xs">
+                    <div className="font-bold text-gray-900 mb-1">Android / Chrome / Edge ব্রাউজার নির্দেশিকা:</div>
+                    <ol className="list-decimal list-inside space-y-1 text-gray-700">
+                      <li>ব্রাউজারের উপরে ডান কোণায় <strong>থ্রি-ডট (⋮)</strong> মেনু বাটনে ক্লিক করুন।</li>
+                      <li>তালিকা থেকে <strong>'Install App' (অ্যাপ ইনস্টল করুন)</strong> অথবা <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> নির্বাচন করুন।</li>
+                      <li><strong>'Install'</strong> বা <strong>'Add'</strong> বাটনে চাপ দিলেই কয়েক সেকেন্ডে আপনার ফোনের হোম স্ক্রিনে আসল অ্যাপের মতো আইকন যুক্ত হয়ে যাবে!</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-[11px] text-gray-600">
+                    💡 <strong>কম্পিউটার (Windows / Mac) ব্যবহারকারীদের জন্য:</strong> ক্রোম বা এজ ব্রাউজারের উপরে এড্রেস বারের (URL Bar) ডান পাশে থাকা <strong>ইনস্টল (⊕)</strong> বাটনে ক্লিক করে ল্যাপটপ/পিসিতেও ইনস্টল করতে পারবেন।
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -12,7 +12,13 @@ import {
   setPersistence,
   browserLocalPersistence,
 } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import {
+  initializeFirestore,
+  doc,
+  getDocFromServer,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore';
 import rawConfig from '../firebase-applet-config.json';
 
 // Support both embedded config and Vercel/production environment variables
@@ -28,8 +34,15 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// CRITICAL: The app requires firestoreDatabaseId for custom provisioned databases
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Initialize Firestore with multi-tab persistent IndexedDB local cache for sub-millisecond instant writes
+export const db = initializeFirestore(
+  app,
+  {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+  },
+  firebaseConfig.firestoreDatabaseId
+);
+
 export const auth = getAuth(app);
 
 // Explicitly guarantee lifetime session persistence until user logs out
