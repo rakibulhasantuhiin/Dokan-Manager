@@ -277,7 +277,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
       )}
 
       {/* Compact Terracotta Balance Banner with Direct "বাকি এডিট" Button */}
-      <div className="relative overflow-hidden rounded-xl bg-[#b83a14] text-white p-3 sm:p-4 shadow-xs shrink-0">
+      <div className="relative overflow-hidden rounded-xl animate-gradient-terracotta shimmer-card text-white p-3 sm:p-4 shadow-xs shrink-0">
         <div className="relative z-10 flex items-center justify-between gap-2">
           <div>
             <div className="text-[11px] sm:text-xs text-white/90 font-medium">
@@ -294,7 +294,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
                   setDirectDueNote('');
                   setIsDueEditModalOpen(true);
                 }}
-                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 active:scale-95 text-white border border-white/35 px-2.5 py-1 rounded-lg text-xs font-bold transition shadow-2xs"
+                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 active:scale-95 text-white border border-white/35 px-2.5 py-1 rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer"
                 title="বাকি টাকা এডিট করুন"
               >
                 <Edit2 className="w-3 h-3" />
@@ -314,14 +314,14 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
       <div className="grid grid-cols-4 gap-1.5 shrink-0">
         <button
           onClick={() => onOpenDueModal(currentCust)}
-          className="col-span-1 flex items-center justify-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white py-2 px-1.5 rounded-xl font-bold text-xs shadow-2xs transition"
+          className="col-span-1 flex items-center justify-center gap-1 animate-gradient-terracotta hover:brightness-105 active:scale-95 text-white py-2 px-1.5 rounded-xl font-bold text-xs shadow-2xs transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
           <span className="truncate">বাকি দিলাম</span>
         </button>
         <button
           onClick={() => onOpenPaymentModal(currentCust)}
-          className="col-span-1 flex items-center justify-center gap-1 bg-[#15803d] hover:bg-[#166534] active:scale-95 text-white py-2 px-1.5 rounded-xl font-bold text-xs shadow-2xs transition"
+          className="col-span-1 flex items-center justify-center gap-1 animate-gradient-emerald hover:brightness-105 active:scale-95 text-white py-2 px-1.5 rounded-xl font-bold text-xs shadow-2xs transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
           <span className="truncate">টাকা পেলাম</span>

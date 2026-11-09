@@ -29,27 +29,27 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
             <motion.button
               key={tab.id}
               onClick={() => onChangeTab(tab.id)}
-              whileTap={{ scale: 0.92 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className={`relative flex-1 flex flex-col items-center justify-center h-full py-1 transition-colors select-none ${
-                isActive ? 'text-[#b83a14]' : 'text-gray-500 hover:text-gray-800'
+              whileTap={{ scale: 0.93 }}
+              transition={{ type: 'spring', stiffness: 750, damping: 38 }}
+              className={`relative flex-1 flex flex-col items-center justify-center h-full py-1 transition-colors duration-100 select-none cursor-pointer ${
+                isActive ? 'text-[#b83a14] bg-orange-50/50' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
-              {/* Smooth Animated Top Line Accent Indicator */}
+              {/* Super-Fast Animated Top Line Accent Indicator */}
               {isActive && (
                 <motion.span
                   layoutId="bottomNavIndicator"
-                  className="absolute top-0 left-3 right-3 h-[2.5px] bg-[#b83a14] rounded-b-sm"
+                  className="absolute top-0 left-3 right-3 h-[3px] animate-gradient-terracotta rounded-b-sm"
                   transition={{
                     type: 'spring',
-                    stiffness: 400,
-                    damping: 32,
+                    stiffness: 750,
+                    damping: 40,
                   }}
                 />
               )}
 
               <Icon
-                className={`w-5 h-5 transition-transform duration-200 ${
+                className={`w-5 h-5 transition-transform duration-100 ${
                   isActive ? 'scale-110 stroke-[2.4]' : 'scale-100 stroke-[1.8]'
                 }`}
               />

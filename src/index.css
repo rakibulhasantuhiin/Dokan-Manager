@@ -66,3 +66,134 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
+
+/* Super-Fast Tab Transition (110ms pure opacity fade - NO transform/filter so fixed modals never clip) */
+@keyframes tabFastFade {
+  0% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-tab-fast {
+  animation: tabFastFade 110ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Smooth Moving Color Gradients for Cards, Banners & Sections */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(220%) skewX(-18deg);
+  }
+}
+
+.animate-gradient-terracotta {
+  background: linear-gradient(125deg, #b83a14, #d94c1a, #932b0c, #cc4318, #b83a14);
+  background-size: 240% 240%;
+  animation: gradientFlow 5.5s ease-in-out infinite;
+}
+
+.animate-gradient-emerald {
+  background: linear-gradient(125deg, #047857, #059669, #065f46, #10b981, #047857);
+  background-size: 240% 240%;
+  animation: gradientFlow 5.5s ease-in-out infinite;
+}
+
+.animate-gradient-blue {
+  background: linear-gradient(125deg, #1d4ed8, #2563eb, #1e40af, #3b82f6, #1d4ed8);
+  background-size: 240% 240%;
+  animation: gradientFlow 5.5s ease-in-out infinite;
+}
+
+.animate-gradient-purple {
+  background: linear-gradient(125deg, #6d28d9, #7c3aed, #5b21b6, #8b5cf6, #6d28d9);
+  background-size: 240% 240%;
+  animation: gradientFlow 5.5s ease-in-out infinite;
+}
+
+/* Soft Animated Moving Pastel Backgrounds for Section Cards */
+.animate-soft-amber {
+  background: linear-gradient(125deg, #fff7ed, #ffedd5, #fef3c7, #fff7ed);
+  background-size: 240% 240%;
+  animation: gradientFlow 6s ease-in-out infinite;
+}
+
+.animate-soft-emerald {
+  background: linear-gradient(125deg, #ecfdf5, #d1fae5, #e6fffa, #ecfdf5);
+  background-size: 240% 240%;
+  animation: gradientFlow 6s ease-in-out infinite;
+}
+
+.animate-soft-blue {
+  background: linear-gradient(125deg, #eff6ff, #dbeafe, #e0f2fe, #eff6ff);
+  background-size: 240% 240%;
+  animation: gradientFlow 6s ease-in-out infinite;
+}
+
+.animate-soft-purple {
+  background: linear-gradient(125deg, #faf5ff, #f3e8ff, #ede9fe, #faf5ff);
+  background-size: 240% 240%;
+  animation: gradientFlow 6s ease-in-out infinite;
+}
+
+.animate-soft-red {
+  background: linear-gradient(125deg, #fef2f2, #fee2e2, #fff1f2, #fef2f2);
+  background-size: 240% 240%;
+  animation: gradientFlow 6s ease-in-out infinite;
+}
+
+/* Subtle Moving Shimmer Highlight on Hero Cards */
+.shimmer-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: shimmerSweep 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Fast Modal Scale-In for inline modals */
+@keyframes fastScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scale-in {
+  animation: fastScaleIn 130ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

@@ -133,7 +133,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         {/* Card 1: মোট ক্যাশ ব্যালেন্স (General Shop Balance) */}
         <div
           onClick={() => setIsBalanceAuditOpen(true)}
-          className="col-span-2 sm:col-span-1 relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-800 text-white p-3 sm:p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.99] transition group"
+          className="col-span-2 sm:col-span-1 relative overflow-hidden rounded-xl animate-gradient-emerald shimmer-card text-white p-3 sm:p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all duration-100 group"
         >
           <div className="flex items-center justify-between text-xs text-emerald-100 font-semibold">
             <span className="flex items-center gap-1.5">
@@ -156,7 +156,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         {/* Card 2: মোট বাকি (Total Customer Due) */}
         <div
           onClick={onGoToCustomer}
-          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-[#b83a14] to-[#962e0e] text-white p-2.5 sm:p-4 shadow-xs cursor-pointer active:scale-[0.99] transition"
+          className="relative overflow-hidden rounded-xl animate-gradient-terracotta shimmer-card text-white p-2.5 sm:p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all duration-100"
         >
           <div className="flex items-center justify-between text-[11px] sm:text-xs text-orange-100 font-semibold">
             <span className="flex items-center gap-1">
@@ -178,7 +178,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         {/* Card 3: স্টকের মোট মূল্য (Total Stock Value) */}
         <div
           onClick={onGoToProduct}
-          className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-700 to-blue-800 text-white p-2.5 sm:p-4 shadow-xs cursor-pointer active:scale-[0.99] transition"
+          className="relative overflow-hidden rounded-xl animate-gradient-blue shimmer-card text-white p-2.5 sm:p-4 shadow-xs cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all duration-100"
         >
           <div className="flex items-center justify-between text-[11px] sm:text-xs text-blue-100 font-semibold">
             <span className="flex items-center gap-1">
@@ -202,7 +202,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         <button
           onClick={onGoToSale}
-          className="flex items-center justify-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+          className="flex items-center justify-center gap-1 animate-gradient-terracotta hover:brightness-105 active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition-all duration-100 cursor-pointer"
         >
           <ShoppingCart className="w-4 h-4 stroke-[2.3] shrink-0" />
           <span className="truncate">নতুন বিক্রি</span>
@@ -210,7 +210,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         <button
           onClick={onOpenQuickDue}
-          className="flex items-center justify-center gap-1 bg-[#9a3412] hover:bg-[#7c2d12] active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+          className="flex items-center justify-center gap-1 animate-gradient-terracotta hover:brightness-105 active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition-all duration-100 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
           <span className="truncate">বাকি দিলাম</span>
@@ -218,7 +218,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         <button
           onClick={onOpenQuickPayment}
-          className="flex items-center justify-center gap-1 bg-[#15803d] hover:bg-[#166534] active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+          className="flex items-center justify-center gap-1 animate-gradient-emerald hover:brightness-105 active:scale-95 text-white py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm shadow-xs transition-all duration-100 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
           <span className="truncate">টাকা পেলাম</span>
@@ -239,7 +239,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {/* Today's Sales */}
-          <div className="p-2 sm:p-2.5 rounded-xl bg-orange-50/70 border border-orange-100">
+          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-amber border border-orange-200/70">
             <div className="text-[11px] text-gray-600 font-semibold flex items-center justify-between">
               <span>আজকের বিক্রি</span>
               <span className="text-[10px] text-gray-400">({toBengaliNumber(metrics.todaySalesCount)}টি)</span>
@@ -250,7 +250,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Due Given */}
-          <div className="p-2 sm:p-2.5 rounded-xl bg-red-50/70 border border-red-100">
+          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-red border border-red-200/70">
             <div className="text-[11px] text-gray-600 font-semibold">আজ বাকি দিয়েছি</div>
             <div className="text-base sm:text-xl font-bold text-red-600 mt-0.5">
               {formatTaka(metrics.todayDueGiven)}
@@ -258,7 +258,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Cash Collection */}
-          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
+          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-emerald border border-emerald-200/70">
             <div className="text-[11px] text-gray-600 font-semibold">আজ নগদ আদায়</div>
             <div className="text-base sm:text-xl font-bold text-emerald-600 mt-0.5">
               {formatTaka(metrics.todayMoneyReceived)}
@@ -266,7 +266,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Profit */}
-          <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50/70 border border-blue-100">
+          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-blue border border-blue-200/70">
             <div className="text-[11px] text-gray-600 font-semibold">আজকের মোট লাভ</div>
             <div className="text-base sm:text-xl font-bold text-blue-700 mt-0.5">
               {formatTaka(metrics.todayProfit)}
@@ -279,7 +279,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <div className="bg-white rounded-2xl border-2 border-purple-200 p-4 sm:p-5 shadow-xs space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl animate-gradient-purple text-white flex items-center justify-center font-bold shadow-2xs">
               <Monitor className="w-4 h-4" />
             </div>
             <div>
@@ -294,7 +294,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           <button
             onClick={() => setIsCompHistoryOpen(!isCompHistoryOpen)}
-            className="flex items-center gap-1 text-xs text-purple-700 font-bold bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition"
+            className="flex items-center gap-1 text-xs text-purple-700 font-bold bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg transition active:scale-95"
           >
             <span>{isCompHistoryOpen ? 'সংক্ষিপ্ত করুন' : 'বিস্তারিত দেখুন'}</span>
             {isCompHistoryOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -304,7 +304,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         {/* 4 Computer Service Metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {/* Comp Balance */}
-          <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
+          <div className="p-3 rounded-xl animate-soft-purple border border-purple-200">
             <div className="text-xs text-purple-900 font-bold flex items-center gap-1">
               <Wallet className="w-3.5 h-3.5 text-purple-600" />
               <span>কম্পিউটার ব্যালেন্স</span>
@@ -316,9 +316,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Comp Total Profit */}
-          <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200">
+          <div className="p-3 rounded-xl animate-soft-emerald border border-emerald-200/80">
             <div className="text-xs text-purple-900 font-bold flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5 text-purple-600" />
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
               <span>মোট সার্ভিস লাভ</span>
             </div>
             <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1">
@@ -328,7 +328,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Service Sales */}
-          <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200">
+          <div className="p-3 rounded-xl animate-soft-purple border border-purple-200">
             <div className="text-xs text-purple-900 font-bold flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-purple-600" />
               <span>আজকের সার্ভিস বিক্রি</span>
@@ -340,9 +340,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Service Profit */}
-          <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200">
+          <div className="p-3 rounded-xl animate-soft-emerald border border-emerald-200/80">
             <div className="text-xs text-purple-900 font-bold flex items-center gap-1">
-              <Coins className="w-3.5 h-3.5 text-purple-600" />
+              <Coins className="w-3.5 h-3.5 text-emerald-600" />
               <span>আজকের সার্ভিস লাভ</span>
             </div>
             <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-1">
@@ -418,7 +418,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={onGoToProduct}
-              className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100/70 border border-amber-200 transition text-center flex flex-col items-center justify-center"
+              className="p-2.5 rounded-xl animate-soft-amber border border-amber-200 hover:brightness-98 active:scale-95 transition-all duration-100 text-center flex flex-col items-center justify-center cursor-pointer"
             >
               <ShoppingBasket className="w-5 h-5 text-amber-700 mb-1" />
               <span className="text-xs font-bold text-amber-900">১. মুদি</span>
@@ -427,7 +427,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <button
               onClick={onGoToProduct}
-              className="p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100/70 border border-blue-200 transition text-center flex flex-col items-center justify-center"
+              className="p-2.5 rounded-xl animate-soft-blue border border-blue-200 hover:brightness-98 active:scale-95 transition-all duration-100 text-center flex flex-col items-center justify-center cursor-pointer"
             >
               <BookOpen className="w-5 h-5 text-blue-700 mb-1" />
               <span className="text-xs font-bold text-blue-900">২. স্টেশনারি</span>
@@ -436,7 +436,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             <button
               onClick={onGoToProduct}
-              className="p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/70 border border-purple-200 transition text-center flex flex-col items-center justify-center"
+              className="p-2.5 rounded-xl animate-soft-purple border border-purple-200 hover:brightness-98 active:scale-95 transition-all duration-100 text-center flex flex-col items-center justify-center cursor-pointer"
             >
               <Monitor className="w-5 h-5 text-purple-700 mb-1" />
               <span className="text-xs font-bold text-purple-900 leading-tight">৩. সার্ভিস</span>

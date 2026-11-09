@@ -51,13 +51,13 @@ function MainContent() {
         onChangeTab={(tab) => {
           setSelectedCustomer(null);
           setActiveTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          window.scrollTo(0, 0);
         }}
       />
 
       {/* Main Content Area - Instant Zero-Lag Tab Switching & Viewport-Fit Layout */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-2.5 sm:px-5">
-        <div key={viewKey} className="w-full">
+        <div key={viewKey} className="w-full animate-tab-fast">
           {selectedCustomer ? (
             <CustomerDetailView
               customer={selectedCustomer}
@@ -124,7 +124,7 @@ function MainContent() {
         onChangeTab={(tab) => {
           setSelectedCustomer(null);
           setActiveTab(tab);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          window.scrollTo(0, 0);
         }}
       />
 

@@ -150,27 +150,37 @@ export const MoreView: React.FC = () => {
 
       {/* Compact 2-Column Grid on Mobile & Desktop so all items fit on 1 screen without scrolling */}
       <div className="grid grid-cols-2 gap-2 sm:gap-3 overflow-y-auto pb-1">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => handleItemClick(item.id)}
-            className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex items-center justify-between text-left hover:border-[#b83a14]/40 hover:bg-orange-50/30 transition active:scale-[0.98] cursor-pointer shadow-2xs"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="text-xl sm:text-2xl select-none shrink-0">{item.icon}</span>
-              <div className="min-w-0">
-                <div className="font-bold text-gray-800 text-xs sm:text-sm truncate">
-                  {item.title}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5 line-clamp-1">
-                  {item.subtitle}
+        {menuItems.map((item, idx) => {
+          const cardBgClass =
+            idx % 4 === 0
+              ? 'animate-soft-amber border-orange-200/70'
+              : idx % 4 === 1
+                ? 'animate-soft-blue border-blue-200/70'
+                : idx % 4 === 2
+                  ? 'animate-soft-emerald border-emerald-200/70'
+                  : 'animate-soft-purple border-purple-200/70';
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleItemClick(item.id)}
+              className={`${cardBgClass} rounded-xl border p-3 sm:p-4 flex items-center justify-between text-left hover:border-[#b83a14]/50 hover:brightness-98 transition-all duration-100 active:scale-[0.98] cursor-pointer shadow-2xs`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="text-xl sm:text-2xl select-none shrink-0">{item.icon}</span>
+                <div className="min-w-0">
+                  <div className="font-bold text-gray-800 text-xs sm:text-sm truncate">
+                    {item.title}
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 mt-0.5 line-clamp-1">
+                    {item.subtitle}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0 ml-1" />
-          </button>
-        ))}
+              <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0 ml-1" />
+            </button>
+          );
+        })}
       </div>
 
       {/* Modal 1: মাল কেনা (Purchases) */}

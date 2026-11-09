@@ -122,7 +122,7 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
             setError('');
             setIsAddModalOpen(true);
           }}
-          className="flex items-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl shadow-xs transition"
+          className="flex items-center gap-1 animate-gradient-terracotta hover:brightness-105 active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl shadow-xs transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[3]" />
           <span>নতুন কাস্টমার</span>
@@ -154,9 +154,9 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
         <div className="flex gap-1.5 text-xs font-semibold shrink-0">
           <button
             onClick={() => setFilterTab('due')}
-            className={`px-3 py-1.5 rounded-xl border transition ${
+            className={`px-3 py-1.5 rounded-xl border transition-all duration-100 cursor-pointer ${
               filterTab === 'due'
-                ? 'bg-[#b83a14] text-white border-[#b83a14]'
+                ? 'animate-gradient-terracotta text-white border-[#b83a14]'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -164,9 +164,9 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
           </button>
           <button
             onClick={() => setFilterTab('all')}
-            className={`px-3 py-1.5 rounded-xl border transition ${
+            className={`px-3 py-1.5 rounded-xl border transition-all duration-100 cursor-pointer ${
               filterTab === 'all'
-                ? 'bg-[#b83a14] text-white border-[#b83a14]'
+                ? 'animate-gradient-terracotta text-white border-[#b83a14]'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -174,9 +174,9 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
           </button>
           <button
             onClick={() => setFilterTab('nodue')}
-            className={`px-3 py-1.5 rounded-xl border transition ${
+            className={`px-3 py-1.5 rounded-xl border transition-all duration-100 cursor-pointer ${
               filterTab === 'nodue'
-                ? 'bg-[#b83a14] text-white border-[#b83a14]'
+                ? 'animate-gradient-terracotta text-white border-[#b83a14]'
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >

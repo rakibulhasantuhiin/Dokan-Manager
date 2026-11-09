@@ -181,7 +181,7 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
         </div>
         <button
           onClick={() => openAddModal()}
-          className="flex items-center gap-1 bg-[#b83a14] hover:bg-[#a33210] active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl shadow-xs transition shrink-0"
+          className="flex items-center gap-1 animate-gradient-terracotta hover:brightness-105 active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl shadow-xs transition shrink-0 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[3]" />
           <span>+ নতুন পণ্য</span>
@@ -193,9 +193,9 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
         <div className="grid grid-cols-4 gap-1">
           <button
             onClick={() => setSelectedMainCategory('সব')}
-            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-100 flex items-center justify-center gap-1 cursor-pointer ${
               selectedMainCategory === 'সব'
-                ? 'bg-[#b83a14] text-white shadow-2xs'
+                ? 'animate-gradient-terracotta text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -207,9 +207,9 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
 
           <button
             onClick={() => setSelectedMainCategory('মুদি')}
-            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-100 flex items-center justify-center gap-1 cursor-pointer ${
               selectedMainCategory === 'মুদি'
-                ? 'bg-[#b83a14] text-white shadow-2xs'
+                ? 'animate-gradient-terracotta text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -221,9 +221,9 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
 
           <button
             onClick={() => setSelectedMainCategory('স্টেশনারি')}
-            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-100 flex items-center justify-center gap-1 cursor-pointer ${
               selectedMainCategory === 'স্টেশনারি'
-                ? 'bg-[#b83a14] text-white shadow-2xs'
+                ? 'animate-gradient-terracotta text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
@@ -235,9 +235,9 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
 
           <button
             onClick={() => setSelectedMainCategory('কম্পিউটার সার্ভিস')}
-            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${
+            className={`py-1.5 px-1 text-center rounded-lg text-[11px] sm:text-xs font-bold transition-all duration-100 flex items-center justify-center gap-1 cursor-pointer ${
               selectedMainCategory === 'কম্পিউটার সার্ভিস'
-                ? 'bg-[#b83a14] text-white shadow-2xs'
+                ? 'animate-gradient-purple text-white shadow-2xs'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >

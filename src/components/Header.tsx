@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenInstallMod
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#b83a14] text-white shadow-md">
+    <header className="sticky top-0 z-40 animate-gradient-terracotta text-white shadow-md">
       <div className="max-w-6xl mx-auto px-3 sm:px-4 h-14 flex items-center justify-between gap-3">
         {/* Brand / Logo */}
         <div
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenInstallMod
 
         {/* Desktop Top Nav Menu for PC */}
         {onChangeTab && activeTab && (
-          <nav className="hidden md:flex items-center gap-1 bg-black/10 rounded-xl p-1 border border-white/10">
+          <nav className="hidden md:flex items-center gap-1 bg-black/15 rounded-xl p-1 border border-white/15">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
@@ -69,10 +69,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenInstallMod
                 <button
                   key={item.id}
                   onClick={() => onChangeTab(item.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-100 cursor-pointer ${
                     isActive
-                      ? 'bg-white text-[#b83a14] shadow-xs'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'
+                      ? 'bg-white text-[#b83a14] shadow-xs scale-[1.03]'
+                      : 'text-white/85 hover:text-white hover:bg-white/15 active:scale-95'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
