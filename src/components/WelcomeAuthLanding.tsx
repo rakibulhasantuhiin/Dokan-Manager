@@ -1,151 +1,73 @@
 import React, { useState } from 'react';
 import {
-  Store,
   Lock,
-  Mail,
   ArrowRight,
   AlertCircle,
   ShieldCheck,
-  CheckCircle2,
   Sparkles,
+  KeyRound,
 } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 
 export const WelcomeAuthLanding: React.FC = () => {
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail, updateSettings } = useDokan();
+  const { signInWithEmail, signUpWithEmail, updateSettings } = useDokan();
 
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [email, setEmail] = useState('tawakkulcorners@gmail.com');
-  const [password, setPassword] = useState('@2828TanjuTuhin');
-  const [shopNameInput, setShopNameInput] = useState('তাওয়াক্কুল কর্নার');
+  const [pinInput, setPinInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Instant 1-Click Master Login handler with automatic sign-up fallback if account doesn't exist yet
-  const performSmartAuth = async (targetEmail: string, targetPass: string, shopTitle?: string) => {
-    const cleanEmail = targetEmail.trim().toLowerCase();
-    setIsLoading(true);
-    setErrorMessage(null);
+  const AUTHORIZED_PIN = '7078';
+  const MASTER_EMAIL = 'tawakkulcorners@gmail.com';
+  const MASTER_PASSWORD = '@2828TanjuTuhin';
 
-    try {
-      // 1. Try signing in
-      await signInWithEmail(cleanEmail, targetPass);
-    } catch (signInErr: any) {
-      console.warn('Sign-in failed, checking if automatic account creation is needed...', signInErr);
-      const code = signInErr?.code;
-
-      if (code === 'auth/too-many-requests') {
-        setErrorMessage('অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। দয়া করে কিছুক্ষণ অপেক্ষা করুন অথবা সরাসরি Google বা অন্য ব্রাউজার দিয়ে প্রবেশ করুন।');
-        return;
-      }
-
-      // 2. If user account does not exist or credentials not initialized, automatically create the account!
-      if (
-        code === 'auth/user-not-found' ||
-        code === 'auth/invalid-credential' ||
-        code === 'auth/wrong-password' ||
-        code === 'auth/invalid-email'
-      ) {
-        try {
-          await signUpWithEmail(cleanEmail, targetPass, shopTitle || 'তাওয়াক্কুল কর্নার');
-          updateSettings({ shopName: shopTitle || 'তাওয়াক্কুল কর্নার', ownerName: 'রাকিবুল হাসান তোহিন' });
-          return;
-        } catch (signUpErr: any) {
-          console.error('Auto sign-up error:', signUpErr);
-          if (signUpErr?.code === 'auth/email-already-in-use') {
-            setErrorMessage('পাসওয়ার্ডটি ভুল হয়েছে। অনুগ্রহ করে পাসওয়ার্ডটি সঠিক দিয়ে চেষ্টা করুন।');
-          } else if (signUpErr?.code === 'auth/too-many-requests') {
-            setErrorMessage('অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। দয়া করে কিছুক্ষণ অপেক্ষা করুন।');
-          } else {
-            setErrorMessage(signUpErr?.message || 'লগইন বা একাউন্ট তৈরি করা সম্ভব হয়নি।');
-          }
-          return;
-        }
-      }
-
-      setErrorMessage(signInErr?.message || 'লগইন সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      await signInWithGoogle();
-    } catch (err: any) {
-      console.error('Google sign in error:', err);
-      if (
-        err?.code === 'auth/popup-blocked' ||
-        err?.code === 'auth/cancelled-popup-request' ||
-        err?.code === 'auth/popup-closed-by-user'
-      ) {
-        setErrorMessage(
-          'PC-তে পপ-আপ ব্লক হয়েছে। নিচের "তাওয়াক্কুল কর্নার ১-ক্লিক লগইন" বাটন চেপে সহজে প্রবেশ করুন।'
-        );
-      } else if (err?.code === 'auth/unauthorized-domain') {
-        setErrorMessage(
-          'নিচের ১-ক্লিক বাটন বা ইমেইল-পাসওয়ার্ড দিয়ে সরাসরি সফটওয়্যারে প্রবেশ করুন।'
-        );
-      } else {
-        setErrorMessage(err?.message || 'লগইন করতে সমস্যা হয়েছে। ১-ক্লিক বাটন দিয়ে চেষ্টা করুন।');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleEmailAuthSubmit = async (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      setErrorMessage('অনুগ্রহ করে ইমেইল এবং পাসওয়ার্ড দিন');
-      return;
-    }
-    if (authMode === 'signup' && !shopNameInput.trim()) {
-      setErrorMessage('অনুগ্রহ করে আপনার দোকানের নাম দিন');
-      return;
-    }
-    if (password.length < 6) {
-      setErrorMessage('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে');
+    setErrorMessage(null);
+
+    const cleanPin = pinInput.trim();
+    if (cleanPin !== AUTHORIZED_PIN) {
+      setErrorMessage('ভুল অথরাইজড পিন আইডি! সঠিক পিন দিন (পিন: 7078)');
       return;
     }
 
-    if (authMode === 'signup') {
-      setIsLoading(true);
-      setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      // Attempt sign in with authorized credentials
+      await signInWithEmail(MASTER_EMAIL, MASTER_PASSWORD);
+    } catch (err: any) {
+      console.warn('Auto sign-in with pin credentials, attempting auto-signup...', err);
       try {
-        await signUpWithEmail(email.trim(), password, shopNameInput.trim());
-        updateSettings({ shopName: shopNameInput.trim() });
-      } catch (err: any) {
-        if (err?.code === 'auth/email-already-in-use') {
-          // Fallback to login if already exists
-          await performSmartAuth(email, password, shopNameInput);
-        } else {
-          setErrorMessage(err?.message || 'একাউন্ট তৈরি করা যায়নি');
+        await signUpWithEmail(MASTER_EMAIL, MASTER_PASSWORD, 'তাওয়াক্কুল কর্নার');
+        updateSettings({ shopName: 'তাওয়াক্কুল কর্নার', ownerName: 'রাকিবুল হাসান তোহিন' });
+      } catch (signupErr: any) {
+        console.error('Auto signup error:', signupErr);
+        // If already registered or rate limited, try direct sign in once more
+        try {
+          await signInWithEmail(MASTER_EMAIL, MASTER_PASSWORD);
+        } catch (finalErr: any) {
+          setErrorMessage('পিন অথেন্টিকেশনে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।');
         }
-      } finally {
-        setIsLoading(false);
       }
-    } else {
-      await performSmartAuth(email, password, shopNameInput);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] font-['SolaimanLipi',sans-serif] flex flex-col items-center justify-center p-4 text-gray-900 selection:bg-[#b83a14] selection:text-white">
-      {/* Centered Minimal Auth Card */}
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-xl space-y-5">
+      {/* Centered Minimal PIN Auth Card */}
+      <div className="w-full max-w-sm bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-xl space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-[#b83a14] text-white flex items-center justify-center mx-auto text-2xl font-black shadow-md">
+          <div className="w-16 h-16 rounded-2xl bg-[#b83a14] text-white flex items-center justify-center mx-auto text-3xl font-black shadow-md">
             ৳
           </div>
           <h1 className="font-black text-2xl sm:text-3xl text-gray-900 tracking-tight">
             দোকান ম্যানেজার
           </h1>
           <p className="text-xs sm:text-sm text-gray-500 font-medium">
-            ব্যবসা ও বাকি হিসাবের নিরাপদ ক্লাউড সফটওয়্যার
+            নিরাপদ অথরাইজড পিন ভিত্তিক ক্লাউড সফটওয়্যার
           </p>
         </div>
 
@@ -157,150 +79,41 @@ export const WelcomeAuthLanding: React.FC = () => {
           </div>
         )}
 
-        {/* Instant 1-Click Master Account Button for Tawakkul Corner */}
-        <button
-          type="button"
-          onClick={() => performSmartAuth('tawakkulcorners@gmail.com', '@2828TanjuTuhin', 'তাওয়াক্কুল কর্নার')}
-          disabled={isLoading}
-          className="w-full py-3.5 px-4 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-2xl font-extrabold text-sm sm:text-base shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
-        >
-          <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
-          <span>তাওয়াক্কুল কর্নার ১-ক্লিক প্রবেশ</span>
-        </button>
-
-        {/* Google One-Click Login */}
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300 py-3 px-4 rounded-2xl font-bold text-sm text-gray-800 shadow-2xs transition active:scale-[0.99] disabled:opacity-60 cursor-pointer"
-        >
-          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-            />
-          </svg>
-          <span>Google দিয়ে ১-ক্লিকে প্রবেশ</span>
-        </button>
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center my-1">
-          <div className="border-t border-gray-200 w-full" />
-          <span className="bg-white px-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider shrink-0">
-            অথবা ইমেইল দিয়ে প্রবেশ করুন
-          </span>
-        </div>
-
-        {/* Email/Password Auth Form */}
-        <form onSubmit={handleEmailAuthSubmit} className="space-y-3.5">
-          {/* Tab Selector */}
-          <div className="flex bg-gray-100 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('login');
-                setErrorMessage(null);
-              }}
-              className={`flex-1 py-2 text-xs font-extrabold rounded-lg transition ${
-                authMode === 'login'
-                  ? 'bg-white text-gray-900 shadow-2xs'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              লগইন
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('signup');
-                setErrorMessage(null);
-              }}
-              className={`flex-1 py-2 text-xs font-extrabold rounded-lg transition ${
-                authMode === 'signup'
-                  ? 'bg-white text-gray-900 shadow-2xs'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              নতুন একাউন্ট খুলুন
-            </button>
-          </div>
-
-          {authMode === 'signup' && (
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
-                দোকানের নাম <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <Store className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  required
-                  value={shopNameInput}
-                  onChange={(e) => setShopNameInput(e.target.value)}
-                  placeholder="যেমন: তাওয়াক্কুল কর্নার"
-                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
-                />
-              </div>
-            </div>
-          )}
-
+        {/* PIN Authentication Form */}
+        <form onSubmit={handlePinSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">
-              ইমেইল ঠিকানা <span className="text-red-500">*</span>
+            <label className="block text-xs font-bold text-gray-700 mb-1.5 text-center">
+              অথরাইজড পিন আইডি দিন <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tawakkulcorners@gmail.com"
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white font-medium"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">
-              পাসওয়ার্ড <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+              <KeyRound className="w-5 h-5 text-amber-600 absolute left-3.5 top-3.5" />
               <input
                 type="password"
+                maxLength={6}
                 required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="@2828TanjuTuhin"
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white font-medium"
+                autoFocus
+                value={pinInput}
+                onChange={(e) => setPinInput(e.target.value)}
+                placeholder="••••"
+                className="w-full bg-[#fbfaf8] border-2 border-gray-300 rounded-2xl pl-11 pr-4 py-3 text-center text-xl font-black tracking-widest text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:border-[#b83a14] focus:bg-white"
               />
+            </div>
+            <div className="text-[11px] text-gray-400 text-center mt-1">
+              অথরাইজড পিন কোড দিয়ে সফটওয়্যারে প্রবেশ করুন
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-2xl font-bold text-sm sm:text-base shadow-xs transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+            className="w-full py-3.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-2xl font-extrabold text-sm sm:text-base shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
           >
             {isLoading ? (
-              <span>প্রসেসিং হচ্ছে...</span>
+              <span>প্রবেশ করা হচ্ছে...</span>
             ) : (
               <>
-                <span>{authMode === 'signup' ? 'একাউন্ট তৈরি করুন' : 'প্রবেশ করুন'}</span>
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>পিন দিয়ে প্রবেশ করুন</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -310,7 +123,7 @@ export const WelcomeAuthLanding: React.FC = () => {
         {/* Footer Security Badge */}
         <div className="pt-2 text-center text-[11px] text-gray-400 flex items-center justify-center gap-1.5 font-medium border-t border-gray-100">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-          <span>নিরাপদ ক্লাউড এনক্রিপশন যুক্ত</span>
+          <span>শুধুমাত্র অনুমোদিত পিনের জন্য সংরক্ষিত</span>
         </div>
       </div>
     </div>

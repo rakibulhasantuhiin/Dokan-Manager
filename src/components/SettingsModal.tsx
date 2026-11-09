@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   LogOut,
   User as UserIcon,
+  Lock,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useDokan } from '../context/DokanContext';
@@ -34,6 +35,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
+    updatePassword,
     logOut,
   } = useDokan();
 
@@ -56,6 +58,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [authName, setAuthName] = useState('');
 
   const [showInstallHelp, setShowInstallHelp] = useState(false);
+
+  // Password update state
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passNotice, setPassNotice] = useState<string | null>(null);
+  const [passError, setPassError] = useState<string | null>(null);
+  const [isUpdatingPass, setIsUpdatingPass] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,8 +126,41 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   };
 
   const handleLogout = async () => {
-    if (confirm('আপনি কি গুগল অ্যাকাউন্ট থেকে লগআউট করতে চান?')) {
+    if (confirm('আপনি কি অ্যাকাউন্ট থেকে লগআউট করতে চান?')) {
       await logOut();
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPassNotice(null);
+    setPassError(null);
+
+    if (!newPassword || newPassword.length < 6) {
+      setPassError('পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে।');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPassError('পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড মিলছে না।');
+      return;
+    }
+
+    try {
+      setIsUpdatingPass(true);
+      await updatePassword(newPassword);
+      setPassNotice('পাসওয়ার্ড সফলভাবে সেট ও আপডেট হয়েছে! এখন থেকে এই পাসওয়ার্ড দিয়ে লগইন করতে পারবেন।');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPassNotice(null), 4000);
+    } catch (err: any) {
+      console.error(err);
+      if (err?.code === 'auth/requires-recent-login') {
+        setPassError('নিরাপত্তার জন্য পুনরায় লগইন করে তারপর পাসওয়ার্ড পরিবর্তন করুন।');
+      } else {
+        setPassError(err?.message || 'পাসওয়ার্ড আপডেট করতে সমস্যা হয়েছে।');
+      }
+    } finally {
+      setIsUpdatingPass(false);
     }
   };
 
@@ -507,6 +549,67 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             দোকানের তথ্য সংরক্ষণ করুন
           </button>
         </form>
+
+        {/* 3.5 Set Login Password Section */}
+        <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50/50 border border-orange-200">
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#b83a14] text-white flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="font-bold text-gray-900 text-sm">লগইন পাসওয়ার্ড সেট বা পরিবর্তন করুন</h4>
+              <p className="text-[11px] text-gray-600">
+                আপনার ইমেইল ({currentUser?.email || 'tawakkulcorners@gmail.com'}) এর জন্য নতুন পাসওয়ার্ড সেট করুন।
+              </p>
+            </div>
+          </div>
+
+          {passNotice && (
+            <div className="mb-2.5 p-2 bg-emerald-50 text-emerald-800 text-xs font-semibold rounded-lg border border-emerald-200">
+              {passNotice}
+            </div>
+          )}
+
+          {passError && (
+            <div className="mb-2.5 p-2 bg-red-50 text-red-700 text-xs font-semibold rounded-lg border border-red-200">
+              {passError}
+            </div>
+          )}
+
+          <form onSubmit={handlePasswordSubmit} className="space-y-2.5">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)</label>
+              <input
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="নতুন পাসওয়ার্ড দিন"
+                className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">কনফার্ম নতুন পাসওয়ার্ড</label>
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="আবার পাসওয়ার্ডটি লিখুন"
+                className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-[#b83a14]"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isUpdatingPass}
+              className="w-full py-2.5 bg-[#b83a14] hover:bg-[#a33210] disabled:opacity-60 text-white rounded-xl font-bold text-xs shadow-xs transition cursor-pointer"
+            >
+              {isUpdatingPass ? 'সংরক্ষণ হচ্ছে...' : 'পাসওয়ার্ড সংরক্ষণ করুন'}
+            </button>
+          </form>
+        </div>
 
         {/* 4. Backup & Restore Section */}
         <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">

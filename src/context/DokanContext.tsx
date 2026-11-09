@@ -11,6 +11,7 @@ import {
   signInWithGoogle,
   signInWithEmail,
   signUpWithEmail,
+  updateUserPassword,
   checkRedirectAuth,
   logOut,
 } from '../firebase';
@@ -39,6 +40,7 @@ interface DokanContextType {
   signInWithGoogle: () => Promise<User | null>;
   signInWithEmail: (email: string, pass: string) => Promise<User>;
   signUpWithEmail: (email: string, pass: string, name?: string) => Promise<User>;
+  updatePassword: (newPass: string) => Promise<void>;
   logOut: () => Promise<void>;
   settings: ShopSettings;
   updateSettings: (newSettings: Partial<ShopSettings>) => void;
@@ -1456,6 +1458,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         signInWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        updatePassword: updateUserPassword,
         logOut: handleLogOut,
         settings,
 

@@ -8,6 +8,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  updatePassword,
   signOut,
   setPersistence,
   browserLocalPersistence,
@@ -107,6 +108,16 @@ export async function signUpWithEmail(email: string, pass: string, name?: string
     return result.user;
   } catch (error) {
     console.error('Email sign up error:', error);
+    throw error;
+  }
+}
+
+export async function updateUserPassword(newPass: string) {
+  try {
+    if (!auth.currentUser) throw new Error('কোনো ইউজার লগইন করা নেই');
+    await updatePassword(auth.currentUser, newPass);
+  } catch (error) {
+    console.error('Update password error:', error);
     throw error;
   }
 }
