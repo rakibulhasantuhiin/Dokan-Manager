@@ -18,6 +18,7 @@ import { useDokan } from '../context/DokanContext';
 import { Product, CartItem, SaleRecord, MainCategory } from '../types';
 import { formatTaka, toBengaliNumber } from '../utils/bengali';
 import { calculateSaleProfit } from '../utils/calculations';
+import { WeightSelectorModal } from './WeightSelectorModal';
 
 interface SaleViewProps {
   onBack: () => void;
@@ -45,6 +46,8 @@ export const SaleView: React.FC<SaleViewProps> = ({
   const [notification, setNotification] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+  const [weightProduct, setWeightProduct] = useState<Product | null>(null);
+  const [editingCartItemIndex, setEditingCartItemIndex] = useState<number | null>(null);
 
   const notifyTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -88,6 +91,12 @@ export const SaleView: React.FC<SaleViewProps> = ({
 
   // Add product to cart instantaneously without layout jump
   const handleAddToCart = (product: Product) => {
+    // If it's a weight-based product, open the weight selector instead of adding 1 unit
+    if (product.measurementType === 'weight' || product.unit === 'কেজি' || product.unit === 'গ্রাম') {
+      setWeightProduct(product);
+      return;
+    }
+
     setCart((prevCart) => {
       const existing = prevCart.find((item) => item.product.id === product.id);
       if (existing) {
@@ -117,6 +126,65 @@ export const SaleView: React.FC<SaleViewProps> = ({
     }
     setNotification(`✅ "${product.name}" কার্টে যোগ হয়েছে`);
     notifyTimerRef.current = setTimeout(() => setNotification(null), 1500);
+  };
+
+  const handleWeightConfirm = (quantity: number, total: number) => {
+    if (!weightProduct && editingCartItemIndex === null) return;
+    
+    setCart((prevCart) => {
+      // If we are EDITING an existing item
+      if (editingCartItemIndex !== null) {
+        return prevCart.map((item, idx) =>
+          idx === editingCartItemIndex
+            ? {
+                ...item,
+                quantity,
+                total,
+              }
+            : item
+        );
+      }
+
+      // If we are ADDING a new item
+      const productToAdd = weightProduct!;
+      const existing = prevCart.find((item) => item.product.id === productToAdd.id);
+      if (existing) {
+        return prevCart.map((item) =>
+          item.product.id === productToAdd.id
+            ? {
+                ...item,
+                quantity: item.quantity + quantity,
+                total: item.total + total,
+              }
+            : item
+        );
+      }
+      return [
+        ...prevCart,
+        {
+          product: productToAdd,
+          quantity,
+          price: productToAdd.sellingPrice,
+          total,
+        },
+      ];
+    });
+
+    setNotification(`✅ কার্ট আপডেট হয়েছে`);
+    setWeightProduct(null);
+    setEditingCartItemIndex(null);
+    if (notifyTimerRef.current) {
+      clearTimeout(notifyTimerRef.current);
+    }
+    notifyTimerRef.current = setTimeout(() => setNotification(null), 1500);
+  };
+
+  const handleEditItem = (index: number) => {
+    const item = cart[index];
+    if (item.product.measurementType === 'weight' || item.product.unit === 'কেজি' || item.product.unit === 'গ্রাম') {
+      setWeightProduct(item.product);
+      setEditingCartItemIndex(index);
+    }
   };
 
   const updateQuantity = (productId: string, delta: number) => {
@@ -457,6 +525,7 @@ export const SaleView: React.FC<SaleViewProps> = ({
             setNewCustomerPhone={setNewCustomerPhone}
             updateQuantity={updateQuantity}
             removeItem={removeItem}
+            onEditItem={handleEditItem}
             clearCart={() => setCart([])}
             onCheckout={handleCheckout}
           />
@@ -513,6 +582,7 @@ export const SaleView: React.FC<SaleViewProps> = ({
                 setNewCustomerPhone={setNewCustomerPhone}
                 updateQuantity={updateQuantity}
                 removeItem={removeItem}
+                onEditItem={handleEditItem}
                 clearCart={() => setCart([])}
                 onCheckout={handleCheckout}
                 hideTopHeader
@@ -521,6 +591,13 @@ export const SaleView: React.FC<SaleViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Weight Selection Modal */}
+      <WeightSelectorModal
+        product={weightProduct}
+        onClose={() => setWeightProduct(null)}
+        onConfirm={handleWeightConfirm}
+      />
     </div>
   );
 };
@@ -551,6 +628,7 @@ interface CartCheckoutCardProps {
   setNewCustomerPhone: (val: string) => void;
   updateQuantity: (id: string, delta: number) => void;
   removeItem: (id: string) => void;
+  onEditItem: (index: number) => void;
   clearCart: () => void;
   onCheckout: () => void;
 }
@@ -579,6 +657,7 @@ const CartCheckoutCard: React.FC<CartCheckoutCardProps> = ({
   setNewCustomerPhone,
   updateQuantity,
   removeItem,
+  onEditItem,
   clearCart,
   onCheckout,
 }) => {
@@ -609,51 +688,65 @@ const CartCheckoutCard: React.FC<CartCheckoutCardProps> = ({
         <>
           {/* Compact Item List (Scrolls internally only if >3 items, keeping checkout buttons on screen) */}
           <div className="divide-y divide-gray-100 max-h-36 sm:max-h-48 overflow-y-auto">
-            {cart.map((item) => (
-              <div key={item.product.id} className="px-2.5 py-2 flex items-center justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-gray-800 text-xs truncate">
-                    {item.product.name}
+            {cart.map((item, index) => {
+              const isWeight = item.product.measurementType === 'weight' || item.product.unit === 'কেজি' || item.product.unit === 'গ্রাম';
+              return (
+                <div key={`${item.product.id}-${index}`} className="px-2.5 py-2 flex items-center justify-between gap-2 hover:bg-gray-50 transition">
+                  <div 
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={() => isWeight && onEditItem(index)}
+                  >
+                    <div className="font-bold text-gray-800 text-xs truncate">
+                      {item.product.name}
+                    </div>
+                    <div className="text-[10px] text-gray-500">
+                      {formatTaka(item.price)}/{item.product.unit} {isWeight && <span className="text-orange-600 font-bold ml-1">(এডিট করতে চাপুন)</span>}
+                    </div>
                   </div>
-                  <div className="text-[10px] text-gray-500">
-                    {formatTaka(item.price)}/{item.product.unit}
-                  </div>
-                </div>
 
-                {/* Quantity +/- Controls */}
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5 border border-gray-200 shrink-0">
+                  {/* Quantity Controls */}
+                  <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5 border border-gray-200 shrink-0">
+                    {!isWeight && (
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.product.id, -1)}
+                        className="w-6 h-6 rounded bg-white text-gray-700 hover:bg-gray-200 flex items-center justify-center transition active:scale-90 text-xs"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </button>
+                    )}
+                    <div 
+                      className={`px-2 text-center font-bold text-xs text-gray-800 flex flex-col leading-tight ${isWeight ? 'cursor-pointer' : ''}`}
+                      onClick={() => isWeight && onEditItem(index)}
+                    >
+                      <span>{toBengaliNumber(item.quantity)}</span>
+                      <span className="text-[9px] text-gray-500 uppercase">{item.product.unit}</span>
+                    </div>
+                    {!isWeight && (
+                      <button
+                        type="button"
+                        onClick={() => updateQuantity(item.product.id, 1)}
+                        className="w-6 h-6 rounded bg-white text-gray-700 hover:bg-gray-200 flex items-center justify-center transition active:scale-90 text-xs"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="text-right w-14 shrink-0 font-bold text-[#b83a14] text-xs">
+                    {formatTaka(item.total)}
+                  </div>
+
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.product.id, -1)}
-                    className="w-6 h-6 rounded bg-white text-gray-700 hover:bg-gray-200 flex items-center justify-center transition active:scale-90 text-xs"
+                    onClick={() => removeItem(item.product.id)}
+                    className="text-gray-400 hover:text-red-500 p-1"
                   >
-                    <Minus className="w-3 h-3" />
-                  </button>
-                  <span className="w-6 text-center font-bold text-xs text-gray-800">
-                    {toBengaliNumber(item.quantity)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.product.id, 1)}
-                    className="w-6 h-6 rounded bg-white text-gray-700 hover:bg-gray-200 flex items-center justify-center transition active:scale-90 text-xs"
-                  >
-                    <Plus className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-
-                <div className="text-right w-14 shrink-0 font-bold text-[#b83a14] text-xs">
-                  {formatTaka(item.total)}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.product.id)}
-                  className="text-gray-400 hover:text-red-500 p-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Ultra-Compact Pricing Strip */}
