@@ -34,6 +34,11 @@ export const WelcomeAuthLanding: React.FC = () => {
       console.warn('Sign-in failed, checking if automatic account creation is needed...', signInErr);
       const code = signInErr?.code;
 
+      if (code === 'auth/too-many-requests') {
+        setErrorMessage('অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। দয়া করে কিছুক্ষণ অপেক্ষা করুন অথবা সরাসরি Google বা অন্য ব্রাউজার দিয়ে প্রবেশ করুন।');
+        return;
+      }
+
       // 2. If user account does not exist or credentials not initialized, automatically create the account!
       if (
         code === 'auth/user-not-found' ||
@@ -49,6 +54,8 @@ export const WelcomeAuthLanding: React.FC = () => {
           console.error('Auto sign-up error:', signUpErr);
           if (signUpErr?.code === 'auth/email-already-in-use') {
             setErrorMessage('পাসওয়ার্ডটি ভুল হয়েছে। অনুগ্রহ করে পাসওয়ার্ডটি সঠিক দিয়ে চেষ্টা করুন।');
+          } else if (signUpErr?.code === 'auth/too-many-requests') {
+            setErrorMessage('অতিরিক্ত চেষ্টার কারণে সাময়িকভাবে ব্লক করা হয়েছে। দয়া করে কিছুক্ষণ অপেক্ষা করুন।');
           } else {
             setErrorMessage(signUpErr?.message || 'লগইন বা একাউন্ট তৈরি করা সম্ভব হয়নি।');
           }
