@@ -164,9 +164,24 @@
         "userId": { "type": "string", "maxLength": 128 }
       },
       "required": ["type", "amount", "description", "userId"]
+    },
+    "PinRegistry": {
+      "title": "PinRegistry",
+      "description": "PIN-based isolated shop account metadata",
+      "type": "object",
+      "properties": {
+        "pin": { "type": "string", "maxLength": 32 },
+        "shopName": { "type": "string", "maxLength": 120 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["pin", "shopName"]
     }
   },
   "firestore": {
+    "/pin_registry/{pinId}": {
+      "schema": "PinRegistry",
+      "description": "Isolated PIN account registry"
+    },
     "/users/{userId}/shop/{documentId}": {
       "schema": "ShopData",
       "description": "Zero-quota-drain aggregated shop snapshot"

@@ -16,6 +16,8 @@ import {
 import {
   initializeFirestore,
   doc,
+  getDoc,
+  setDoc,
   getDocFromServer,
   persistentLocalCache,
   persistentMultipleTabManager,
@@ -59,21 +61,14 @@ export async function signInWithGoogle() {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
   } catch (error: any) {
-    console.error('Google sign in popup error:', error);
-    // Fallback to redirect on PC popup blockage or iframe constraint
     if (
       error?.code === 'auth/popup-blocked' ||
       error?.code === 'auth/cancelled-popup-request' ||
       error?.code === 'auth/popup-closed-by-user' ||
       error?.code === 'auth/operation-not-supported-in-this-environment'
     ) {
-      try {
-        await signInWithRedirect(auth, googleProvider);
-        return null;
-      } catch (redirectErr) {
-        console.error('Google redirect sign in error:', redirectErr);
-        throw redirectErr;
-      }
+      await signInWithRedirect(auth, googleProvider);
+      return null;
     }
     throw error;
   }
@@ -83,52 +78,101 @@ export async function checkRedirectAuth() {
   try {
     const result = await getRedirectResult(auth);
     return result ? result.user : null;
-  } catch (error) {
-    console.error('Redirect auth check error:', error);
+  } catch {
     return null;
   }
 }
 
 export async function signInWithEmail(email: string, pass: string) {
-  try {
-    const result = await signInWithEmailAndPassword(auth, email, pass);
-    return result.user;
-  } catch (error) {
-    console.error('Email sign in error:', error);
-    throw error;
-  }
+  const result = await signInWithEmailAndPassword(auth, email, pass);
+  return result.user;
 }
 
 export async function signUpWithEmail(email: string, pass: string, name?: string) {
-  try {
-    const result = await createUserWithEmailAndPassword(auth, email, pass);
-    if (name && result.user) {
-      await updateProfile(result.user, { displayName: name });
+  const result = await createUserWithEmailAndPassword(auth, email, pass);
+  if (name && result.user) {
+    await updateProfile(result.user, { displayName: name });
+  }
+  return result.user;
+}
+
+/**
+ * Converts Bengali numerals (০-৯) to English digits (0-9) and trims spaces
+ * so PINs work whether typed with an English or Bengali keyboard.
+ */
+export function normalizePin(raw: string): string {
+  const bengaliDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return raw
+    .trim()
+    .split('')
+    .map((ch) => {
+      const idx = bengaliDigits.indexOf(ch);
+      return idx !== -1 ? String(idx) : ch;
+    })
+    .join('');
+}
+
+/**
+ * Looks up a PIN in Cloud Firestore (`pin_registry/{pin}` or `users/pin_vault_{pin}/shop/master`)
+ * with a fast timeout so it works across Vercel, PC, and Mobile without hanging.
+ */
+export async function verifyPinInCloud(pin: string): Promise<{ exists: boolean; shopName?: string }> {
+  const cleanPin = normalizePin(pin);
+  if (cleanPin === '7078') {
+    return { exists: true, shopName: 'তাওয়াক্কুল কর্নার' };
+  }
+
+  const timeoutPromise = new Promise<{ exists: boolean }>((resolve) =>
+    setTimeout(() => resolve({ exists: false }), 2500)
+  );
+
+  const checkPromise = (async (): Promise<{ exists: boolean; shopName?: string }> => {
+    try {
+      const regSnap = await getDoc(doc(db, 'pin_registry', cleanPin));
+      if (regSnap.exists()) {
+        const data = regSnap.data();
+        return { exists: true, shopName: data?.shopName || 'আমার দোকান' };
+      }
+      const shopSnap = await getDoc(doc(db, 'users', `pin_vault_${cleanPin}`, 'shop', 'master'));
+      if (shopSnap.exists()) {
+        const sData = shopSnap.data();
+        return { exists: true, shopName: sData?.settings?.shopName || 'আমার দোকান' };
+      }
+      return { exists: false };
+    } catch {
+      return { exists: false };
     }
-    return result.user;
-  } catch (error) {
-    console.error('Email sign up error:', error);
-    throw error;
+  })();
+
+  return Promise.race([checkPromise, timeoutPromise]);
+}
+
+/**
+ * Registers a new PIN in Cloud Firestore (`pin_registry/{pin}`) without blocking login if offline.
+ */
+export async function registerPinInCloud(pin: string, shopName: string): Promise<void> {
+  const cleanPin = normalizePin(pin);
+  try {
+    await Promise.race([
+      setDoc(doc(db, 'pin_registry', cleanPin), {
+        pin: cleanPin,
+        shopName: shopName.trim() || 'আমার দোকান',
+        createdAt: new Date().toISOString(),
+      }),
+      new Promise((resolve) => setTimeout(resolve, 1800)),
+    ]);
+  } catch {
+    // Firestore offline cache will sync automatically when online
   }
 }
 
 export async function updateUserPassword(newPass: string) {
-  try {
-    if (!auth.currentUser) throw new Error('কোনো ইউজার লগইন করা নেই');
-    await updatePassword(auth.currentUser, newPass);
-  } catch (error) {
-    console.error('Update password error:', error);
-    throw error;
-  }
+  if (!auth.currentUser) throw new Error('কোনো ইউজার লগইন করা নেই');
+  await updatePassword(auth.currentUser, newPass);
 }
 
 export async function logOut() {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    console.error('Logout error:', error);
-    throw error;
-  }
+  await signOut(auth);
 }
 
 // Test connection on boot

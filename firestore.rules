@@ -17,59 +17,74 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isPinVaultId(userId) {
+      return userId is string && userId.size() <= 128 && userId.matches('^pin_vault_[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Isolated PIN Account Registry
+    match /pin_registry/{pinId} {
+      allow get: if true;
+      allow create, update: if pinId is string
+        && pinId.size() >= 4
+        && pinId.size() <= 32
+        && pinId.matches('^[a-zA-Z0-9_\\-]+$')
+        && request.resource.data.shopName is string
+        && request.resource.data.shopName.size() <= 120;
+    }
+
     // Per-user isolated collections
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if isOwner(userId) || isPinVaultId(userId);
 
       // Aggregated Master Shop Document for zero-quota exhaustion & customer live portal
       match /shop/{documentId} {
         allow read: if true;
-        allow write: if isOwner(userId);
+        allow write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Settings
       match /settings/{settingsId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Customers
       match /customers/{customerId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Transactions
       match /transactions/{transactionId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Products
       match /products/{productId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Sales
       match /sales/{saleId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Expenses
       match /expenses/{expenseId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Suppliers
       match /suppliers/{supplierId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Purchases
       match /purchases/{purchaseId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
 
       // Cash entries
       match /cashEntries/{cashEntryId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isPinVaultId(userId);
       }
     }
 

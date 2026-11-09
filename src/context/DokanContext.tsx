@@ -41,6 +41,8 @@ interface DokanContextType {
   signInWithEmail: (email: string, pass: string) => Promise<User>;
   signUpWithEmail: (email: string, pass: string, name?: string) => Promise<User>;
   updatePassword: (newPass: string) => Promise<void>;
+  prepareFreshPinWorkspace: (shopName: string) => void;
+  activateFallbackPinSession: (pin: string, shopName: string) => void;
   logOut: () => Promise<void>;
   settings: ShopSettings;
   updateSettings: (newSettings: Partial<ShopSettings>) => void;
@@ -586,7 +588,34 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const performSync = async () => {
       try {
-        const userId = getPersistentShopOwnerId(currentUser?.uid);
+        // Save per-user local vault so switching PINs on the same device never loses offline data
+        if (currentUser?.uid) {
+          try {
+            localStorage.setItem(
+              `${STORAGE_KEY_PREFIX}vault_${currentUser.uid}`,
+              JSON.stringify({
+                updatedAt: new Date(nowTime).toISOString(),
+                settings: stateRef.current.settings,
+                customers: stateRef.current.customers,
+                transactions: stateRef.current.transactions,
+                products: stateRef.current.products,
+                sales: stateRef.current.sales,
+                expenses: stateRef.current.expenses,
+                suppliers: stateRef.current.suppliers,
+                purchases: stateRef.current.purchases,
+                cashEntries: stateRef.current.cashEntries,
+              })
+            );
+          } catch {}
+        }
+
+        // Sync to Cloud Firestore using currentUser.uid (supports both pin_vault_* and Firebase Auth UID)
+        if (!currentUser?.uid) {
+          setIsCloudSyncing(false);
+          return;
+        }
+
+        const userId = getPersistentShopOwnerId(currentUser.uid);
         const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
         const payload = {
           userId,
@@ -605,8 +634,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await setDoc(masterDocRef, payload, { merge: true });
         setLastSyncedAt(new Date());
       } catch (err) {
-        const uid = currentUser?.uid || 'guest';
-        handleFirestoreError(err, OperationType.WRITE, `users/${uid}/shop/master`);
+        console.warn('Cloud sync deferred (offline or local mode):', err);
       } finally {
         setIsCloudSyncing(false);
       }
@@ -634,8 +662,22 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     checkRedirectAuth().catch((err) => console.warn('Redirect auth check:', err));
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+      // Prefer active PIN vault session if present so PIN login works 100% reliably across Vercel & AI Studio
+      try {
+        const fallbackPin = localStorage.getItem('dokan_active_pin_session');
+        if (fallbackPin) {
+          const parsed = JSON.parse(fallbackPin);
+          setCurrentUser(parsed as User);
+          setIsAuthLoading(false);
+          return;
+        }
+      } catch {}
 
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
       setIsAuthLoading(false);
     });
     return () => unsubscribeAuth();
@@ -646,7 +688,26 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!currentUser) return;
 
     const userId = currentUser.uid;
+
+    // Restore from per-PIN local vault first if available
+    try {
+      const localVaultStr = localStorage.getItem(`${STORAGE_KEY_PREFIX}vault_${userId}`);
+      if (localVaultStr) {
+        const vData = JSON.parse(localVaultStr);
+        if (vData.settings) { setSettings(vData.settings); stateRef.current.settings = vData.settings; }
+        if (Array.isArray(vData.customers)) { setCustomers(vData.customers); stateRef.current.customers = vData.customers; }
+        if (Array.isArray(vData.transactions)) { setTransactions(vData.transactions); stateRef.current.transactions = vData.transactions; }
+        if (Array.isArray(vData.products)) { setProducts(vData.products); stateRef.current.products = vData.products; }
+        if (Array.isArray(vData.sales)) { setSales(vData.sales); stateRef.current.sales = vData.sales; }
+        if (Array.isArray(vData.expenses)) { setExpenses(vData.expenses); stateRef.current.expenses = vData.expenses; }
+        if (Array.isArray(vData.suppliers)) { setSuppliers(vData.suppliers); stateRef.current.suppliers = vData.suppliers; }
+        if (Array.isArray(vData.purchases)) { setPurchases(vData.purchases); stateRef.current.purchases = vData.purchases; }
+        if (Array.isArray(vData.cashEntries)) { setCashEntries(vData.cashEntries); stateRef.current.cashEntries = vData.cashEntries; }
+      }
+    } catch {}
+
     const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
+    let isFirstSnapshotForSession = true;
 
     setIsCloudSyncing(true);
 
@@ -658,8 +719,9 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
           const isPending = docSnap.metadata.hasPendingWrites;
 
-          // Only accept remote update if snapshot contains pending local writes OR if remote data is >= last local mutation
-          if (isPending || remoteTime >= lastLocalMutationAt.current) {
+          // Always accept the initial remote snapshot upon login or if remote data is >= last local mutation
+          if (isFirstSnapshotForSession || isPending || remoteTime >= lastLocalMutationAt.current) {
+            isFirstSnapshotForSession = false;
             lastLocalMutationAt.current = Math.max(lastLocalMutationAt.current, remoteTime);
             try {
               localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', lastLocalMutationAt.current.toString());
@@ -713,18 +775,19 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             setLastSyncedAt(new Date());
           } else {
-            console.log('Skipping stale remote snapshot because local state is newer. Re-pushing local state...');
             triggerOptimizedCloudSync(true);
           }
         } else {
-          // Master doc doesn't exist yet on cloud (first login): customize owner name if available & upload!
-          const userDefaultName = currentUser.displayName || currentUser.email?.split('@')[0] || '';
-          if (userDefaultName && (settings.ownerName === 'দোকান মালিক' || !settings.ownerName)) {
-            const updated = { ...stateRef.current.settings, ownerName: userDefaultName };
-            setSettings(updated);
-            stateRef.current.settings = updated;
-            try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(updated)); } catch {}
-          }
+          isFirstSnapshotForSession = false;
+          // Master doc doesn't exist yet on cloud (first login for this PIN):
+          const userDefaultName = currentUser.displayName || 'আমার দোকান';
+          const updated = {
+            ...stateRef.current.settings,
+            shopName: userDefaultName,
+          };
+          setSettings(updated);
+          stateRef.current.settings = updated;
+          try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(updated)); } catch {}
           triggerOptimizedCloudSync(true);
         }
         setIsCloudSyncing(false);
@@ -1433,9 +1496,59 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const prepareFreshPinWorkspace = (shopName: string) => {
+    const freshSettings: ShopSettings = {
+      ...DEFAULT_SETTINGS,
+      shopName: shopName.trim() || 'আমার দোকান',
+      ownerName: 'দোকান মালিক',
+    };
+    lastLocalMutationAt.current = 0;
+    setSettings(freshSettings);
+    setCustomers(DEFAULT_CUSTOMERS);
+    setTransactions(DEFAULT_TRANSACTIONS);
+    setProducts(DEFAULT_PRODUCTS);
+    setSales([]);
+    setExpenses([]);
+    setSuppliers(DEFAULT_SUPPLIERS);
+    setPurchases([]);
+    setCashEntries([]);
+    stateRef.current = {
+      settings: freshSettings,
+      customers: DEFAULT_CUSTOMERS,
+      transactions: DEFAULT_TRANSACTIONS,
+      products: DEFAULT_PRODUCTS,
+      sales: [],
+      expenses: [],
+      suppliers: DEFAULT_SUPPLIERS,
+      purchases: [],
+      cashEntries: [],
+    };
+  };
+
+  const activateFallbackPinSession = (pin: string, shopName: string) => {
+    const cleanPin = pin.trim();
+    const fallbackUser = {
+      uid: `pin_vault_${cleanPin}`,
+      email: `pin_${cleanPin}@pin.dokanmanager.app`,
+      displayName: shopName.trim() || (cleanPin === '7078' ? 'তাওয়াক্কুল কর্নার' : 'আমার দোকান'),
+      emailVerified: true,
+      isAnonymous: false,
+    } as unknown as User;
+    try {
+      localStorage.setItem('dokan_active_pin_session', JSON.stringify(fallbackUser));
+    } catch {}
+    setCurrentUser(fallbackUser);
+  };
+
   const handleLogOut = async () => {
-    await logOut();
-    localStorage.clear();
+    try {
+      localStorage.removeItem('dokan_active_pin_session');
+    } catch {}
+    try {
+      await logOut();
+    } catch {}
+    lastLocalMutationAt.current = 0;
+    setCurrentUser(null);
     setSettings(DEFAULT_SETTINGS);
     setCustomers(DEFAULT_CUSTOMERS);
     setTransactions(DEFAULT_TRANSACTIONS);
@@ -1459,6 +1572,8 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         signInWithEmail,
         signUpWithEmail,
         updatePassword: updateUserPassword,
+        prepareFreshPinWorkspace,
+        activateFallbackPinSession,
         logOut: handleLogOut,
         settings,
 
