@@ -87,19 +87,19 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 overflow-hidden">
+      <div className="bg-white rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-2xl sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-white shadow-sm border border-gray-100">
+        <div className="p-3 sm:p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-white shadow-sm border border-gray-100 shrink-0">
               {getIcon()}
             </div>
-            <div>
-              <h3 className="font-extrabold text-gray-900 text-base sm:text-lg tracking-tight">
+            <div className="min-w-0">
+              <h3 className="font-extrabold text-gray-900 text-sm sm:text-lg tracking-tight truncate">
                 {getTitle()}
               </h3>
-              <p className="text-[11px] text-gray-500 font-medium">
+              <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium truncate">
                 {formatBengaliDate(new Date())} (আজ রাত ১২টা পর্যন্ত)
               </p>
             </div>

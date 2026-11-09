@@ -18,6 +18,7 @@ import { calculateMonthlyReport } from '../utils/calculations';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { PWAInstallModal } from './PWAInstallModal';
+import { DailyBusinessReportModal } from './DailyBusinessReportModal';
 
 export const MoreView: React.FC = () => {
   const {
@@ -46,6 +47,7 @@ export const MoreView: React.FC = () => {
   const [activeModal, setActiveModal] = useState<
     'purchase' | 'supplier' | 'expense' | 'cash' | 'business_report' | 'due_report' | 'monthly_report' | null
   >(null);
+  const { activeGlobalModal, setActiveGlobalModal } = useDokan();
 
 
   // Forms states
@@ -112,9 +114,15 @@ export const MoreView: React.FC = () => {
       subtitle: 'বিক্রি, লাভ, কোন পণ্য চলছে',
     },
     {
+      id: 'daily_report' as const,
+      icon: '📊',
+      title: 'পূর্ণাঙ্গ রিপোর্ট ও প্রিন্ট',
+      subtitle: 'দৈনিক ও মাসিক হিসাব (A4 প্রিন্ট)',
+    },
+    {
       id: 'due_report' as const,
       icon: '📈',
-      title: 'রিপোর্ট',
+      title: 'বাকির রিপোর্ট',
       subtitle: 'বাকির তালিকা ও দেনা হিসাব',
     },
     ...(!isInstalled
@@ -137,6 +145,8 @@ export const MoreView: React.FC = () => {
       } else {
         setShowPWAModal(true);
       }
+    } else if (itemId === 'daily_report') {
+      setActiveGlobalModal('daily_report');
     } else {
       setActiveModal(itemId as any);
     }
@@ -834,6 +844,7 @@ export const MoreView: React.FC = () => {
         }}
         onClose={() => setCashToDelete(null)}
       />
+
 
       {/* PWA Install Modal */}
       <PWAInstallModal

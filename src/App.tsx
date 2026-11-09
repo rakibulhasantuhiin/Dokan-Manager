@@ -18,7 +18,11 @@ import { PublicCustomerLedgerView } from './components/PublicCustomerLedgerView'
 import { WelcomeAuthLanding } from './components/WelcomeAuthLanding';
 import { Customer, SaleRecord } from './types';
 
+import { DailyBusinessReportModal } from './components/DailyBusinessReportModal';
+import { DailyMetricsDetailModal } from './components/DailyMetricsDetailModal';
+
 function MainContent() {
+  const { activeGlobalModal, setActiveGlobalModal } = useDokan();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -29,6 +33,23 @@ function MainContent() {
   const [isPWAInstallModalOpen, setIsPWAInstallModalOpen] = useState(false);
   const [completedSaleReceipt, setCompletedSaleReceipt] = useState<SaleRecord | null>(null);
   const [scannerCallback, setScannerCallback] = useState<((code: string) => void) | null>(null);
+  
+  const [metricsDetail, setMetricsDetail] = useState<{ isOpen: boolean; type: 'sales' | 'due' | 'received' | 'profit' }>({
+    isOpen: false,
+    type: 'sales',
+  });
+
+  // Global scroll lock for modals
+  React.useEffect(() => {
+    const isModalOpen = !!quickTxType || isSettingsOpen || isPWAInstallModalOpen || !!completedSaleReceipt || !!scannerCallback || !!activeGlobalModal || metricsDetail.isOpen;
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.height = '100dvh';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    }
+  }, [quickTxType, isSettingsOpen, isPWAInstallModalOpen, completedSaleReceipt, scannerCallback, activeGlobalModal]);
 
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -56,8 +77,8 @@ function MainContent() {
       />
 
       {/* Main Content Area - Instant Zero-Lag Tab Switching & Viewport-Fit Layout */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-2.5 sm:px-5">
-        <div key={viewKey} className="w-full animate-tab-fast">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-2.5 sm:px-5 overflow-x-hidden">
+        <div key={viewKey} className="w-full h-full animate-tab-fast">
           {selectedCustomer ? (
             <CustomerDetailView
               customer={selectedCustomer}
@@ -87,6 +108,7 @@ function MainContent() {
                     setQuickTxCustomer(null);
                     setQuickTxType('payment');
                   }}
+                  onOpenMetricsDetail={(type) => setMetricsDetail({ isOpen: true, type })}
                 />
               )}
 
@@ -177,6 +199,19 @@ function MainContent() {
           />
         )}
       </AnimatePresence>
+
+      {/* Global Business Report Modal */}
+      <DailyBusinessReportModal
+        isOpen={activeGlobalModal === 'daily_report'}
+        onClose={() => setActiveGlobalModal(null)}
+      />
+
+      {/* Global Daily Metrics Detail Modal */}
+      <DailyMetricsDetailModal
+        isOpen={metricsDetail.isOpen}
+        type={metricsDetail.type}
+        onClose={() => setMetricsDetail({ ...metricsDetail, isOpen: false })}
+      />
     </div>
   );
 }

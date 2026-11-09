@@ -17,17 +17,35 @@
 }
 
 @layer base {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
   body {
     font-family: 'SolaimanLipi', 'Hind Siliguri', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     font-weight: 600; /* SolaimanLipi Bold emphasis */
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply text-[13px] sm:text-sm;
   }
 
   h1, h2, h3, h4, h5, h6, button, label, strong, b {
     font-family: 'SolaimanLipi', 'Hind Siliguri', sans-serif;
     font-weight: 700;
+  }
+
+  /* Responsive Font Scaling for Mobile */
+  @media (max-width: 640px) {
+    .text-3xl { @apply text-xl; }
+    .text-2xl { @apply text-lg; }
+    .text-xl { @apply text-base; }
+    .text-lg { @apply text-sm; }
+    .p-4 { @apply p-3; }
+    .p-5 { @apply p-3.5; }
+    .gap-4 { @apply gap-3; }
   }
 }
 
@@ -195,5 +213,45 @@
 
 .animate-scale-in {
   animation: fastScaleIn 130ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Global Responsive Fixes for Small Screens */
+@layer utilities {
+  .text-responsive-title {
+    @apply text-base sm:text-xl font-bold tracking-tight truncate;
+  }
+  .text-responsive-body {
+    @apply text-[11px] sm:text-sm;
+  }
+  .card-compact {
+    @apply p-2.5 sm:p-4 rounded-xl border shadow-2xs;
+  }
+}
+
+/* Prevent long Bengali words from breaking layout */
+* {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+}
+
+/* Ensure images don't overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for mobile browser URL bar height issues */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-screen-safe {
+  height: 100vh;
+  height: 100dvh;
 }
 

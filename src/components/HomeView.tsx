@@ -23,8 +23,6 @@ import { calculateDashboardMetrics } from '../utils/calculations';
 import { formatTaka, toBengaliNumber, formatBengaliDateTime } from '../utils/bengali';
 import { Customer } from '../types';
 import { CashBalanceAuditModal } from './CashBalanceAuditModal';
-import { DailyMetricsDetailModal } from './DailyMetricsDetailModal';
-
 interface HomeViewProps {
   onGoToSale: () => void;
   onGoToProduct: () => void;
@@ -32,6 +30,7 @@ interface HomeViewProps {
   onSelectCustomer: (customer: Customer) => void;
   onOpenQuickDue: () => void;
   onOpenQuickPayment: () => void;
+  onOpenMetricsDetail: (type: 'sales' | 'due' | 'received' | 'profit') => void;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -41,15 +40,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onSelectCustomer,
   onOpenQuickDue,
   onOpenQuickPayment,
+  onOpenMetricsDetail,
 }) => {
   const { settings, updateSettings, customers, transactions, sales, products, cashEntries } = useDokan();
 
   const [isCompHistoryOpen, setIsCompHistoryOpen] = useState(false);
   const [isBalanceAuditOpen, setIsBalanceAuditOpen] = useState(false);
-  const [metricsDetail, setMetricsDetail] = useState<{ isOpen: boolean; type: 'sales' | 'due' | 'received' | 'profit' }>({
-    isOpen: false,
-    type: 'sales',
-  });
 
   // Aggregated financials (with strict midnight-to-midnight boundary)
   const metrics = calculateDashboardMetrics(customers, transactions, sales, products, cashEntries);
@@ -64,7 +60,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const computerCount = products.filter((p) => p.mainCategory === 'কম্পিউটার সার্ভিস').length;
 
   return (
-    <div className="pb-20 pt-1.5 sm:pt-3 space-y-2.5 sm:space-y-3.5">
+    <div className="pb-20 pt-1.5 sm:pt-3 space-y-2 sm:space-y-3">
       {/* 1. Onboarding Checklist ("শুরুর কাজ") - Compact 3-col horizontal bar */}
       {!settings.hideOnboarding && (
         <div className="bg-white rounded-xl p-2.5 shadow-2xs border border-gray-200">
@@ -242,50 +238,50 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
           {/* Today's Sales */}
           <div
-            onClick={() => setMetricsDetail({ isOpen: true, type: 'sales' })}
-            className="p-2 sm:p-2.5 rounded-xl animate-soft-amber border border-orange-200/70 cursor-pointer hover:bg-orange-50 active:scale-95 transition"
+            onClick={() => onOpenMetricsDetail('sales')}
+            className="p-1.5 sm:p-2.5 rounded-xl animate-soft-amber border border-orange-200/70 cursor-pointer hover:bg-orange-50 active:scale-95 transition"
           >
-            <div className="text-[11px] text-gray-600 font-semibold flex items-center justify-between">
+            <div className="text-[10px] sm:text-[11px] text-gray-600 font-semibold flex items-center justify-between">
               <span>আজকের বিক্রি</span>
-              <span className="text-[10px] text-gray-400">({toBengaliNumber(metrics.todaySalesCount)}টি)</span>
+              <span className="text-[9px] text-gray-400">({toBengaliNumber(metrics.todaySalesCount)})</span>
             </div>
-            <div className="text-base sm:text-xl font-bold text-[#b83a14] mt-0.5">
+            <div className="text-sm sm:text-xl font-bold text-[#b83a14] mt-0.5">
               {formatTaka(metrics.todaySalesAmount)}
             </div>
           </div>
 
           {/* Today's Due Given */}
           <div
-            onClick={() => setMetricsDetail({ isOpen: true, type: 'due' })}
-            className="p-2 sm:p-2.5 rounded-xl animate-soft-red border border-red-200/70 cursor-pointer hover:bg-red-50 active:scale-95 transition"
+            onClick={() => onOpenMetricsDetail('due')}
+            className="p-1.5 sm:p-2.5 rounded-xl animate-soft-red border border-red-200/70 cursor-pointer hover:bg-red-50 active:scale-95 transition"
           >
-            <div className="text-[11px] text-gray-600 font-semibold">আজ বাকি দিয়েছি</div>
-            <div className="text-base sm:text-xl font-bold text-red-600 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-gray-600 font-semibold">আজ বাকি দিয়েছি</div>
+            <div className="text-sm sm:text-xl font-bold text-red-600 mt-0.5">
               {formatTaka(metrics.todayDueGiven)}
             </div>
           </div>
 
           {/* Today's Cash Collection */}
           <div
-            onClick={() => setMetricsDetail({ isOpen: true, type: 'received' })}
-            className="p-2 sm:p-2.5 rounded-xl animate-soft-emerald border border-emerald-200/70 cursor-pointer hover:bg-emerald-50 active:scale-95 transition"
+            onClick={() => onOpenMetricsDetail('received')}
+            className="p-1.5 sm:p-2.5 rounded-xl animate-soft-emerald border border-emerald-200/70 cursor-pointer hover:bg-emerald-50 active:scale-95 transition"
           >
-            <div className="text-[11px] text-gray-600 font-semibold">আজ নগদ আদায়</div>
-            <div className="text-base sm:text-xl font-bold text-emerald-600 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-gray-600 font-semibold">আজ নগদ আদায়</div>
+            <div className="text-sm sm:text-xl font-bold text-emerald-600 mt-0.5">
               {formatTaka(metrics.todayMoneyReceived)}
             </div>
           </div>
 
           {/* Today's Profit */}
           <div
-            onClick={() => setMetricsDetail({ isOpen: true, type: 'profit' })}
-            className="p-2 sm:p-2.5 rounded-xl animate-soft-blue border border-blue-200/70 cursor-pointer hover:bg-blue-50 active:scale-95 transition"
+            onClick={() => onOpenMetricsDetail('profit')}
+            className="p-1.5 sm:p-2.5 rounded-xl animate-soft-blue border border-blue-200/70 cursor-pointer hover:bg-blue-50 active:scale-95 transition"
           >
-            <div className="text-[11px] text-gray-600 font-semibold">আজকের মোট লাভ</div>
-            <div className="text-base sm:text-xl font-bold text-blue-700 mt-0.5">
+            <div className="text-[10px] sm:text-[11px] text-gray-600 font-semibold">আজকের মোট লাভ</div>
+            <div className="text-sm sm:text-xl font-bold text-blue-700 mt-0.5">
               {formatTaka(metrics.todayProfit)}
             </div>
           </div>
@@ -528,12 +524,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         onClose={() => setIsBalanceAuditOpen(false)}
       />
 
-      {/* Daily Metrics Detail Modal */}
-      <DailyMetricsDetailModal
-        isOpen={metricsDetail.isOpen}
-        type={metricsDetail.type}
-        onClose={() => setMetricsDetail({ ...metricsDetail, isOpen: false })}
-      />
     </div>
   );
 };

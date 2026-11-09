@@ -87,6 +87,8 @@ interface DokanContextType {
   resetAllData: () => void;
   exportDataJSON: () => string;
   importDataJSON: (jsonStr: string) => boolean;
+  activeGlobalModal: 'daily_report' | 'business_report' | 'due_report' | 'monthly_report' | null;
+  setActiveGlobalModal: (modal: 'daily_report' | 'business_report' | 'due_report' | 'monthly_report' | null) => void;
 }
 
 const STORAGE_KEY_PREFIX = 'dokan_manager_';
@@ -308,6 +310,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isCloudSyncing, setIsCloudSyncing] = useState(false);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+  const [activeGlobalModal, setActiveGlobalModal] = useState<'daily_report' | 'business_report' | 'due_report' | 'monthly_report' | null>(null);
 
   const [settings, setSettings] = useState<ShopSettings>(() => {
     try {
@@ -1610,6 +1613,8 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         resetAllData,
         exportDataJSON,
         importDataJSON,
+        activeGlobalModal,
+        setActiveGlobalModal,
       }}
     >
       {children}
