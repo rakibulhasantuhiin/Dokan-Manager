@@ -233,9 +233,6 @@
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
-  -webkit-hyphens: auto;
-  -ms-hyphens: auto;
-  hyphens: auto;
 }
 
 /* Ensure images don't overflow */
@@ -253,5 +250,72 @@ img {
 .h-screen-safe {
   height: 100vh;
   height: 100dvh;
+}
+
+/* A4 Print Styles for Professional Reports */
+@media print {
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    font-weight: 400;
+  }
+
+  /* Hide everything by default in print */
+  body > * {
+    display: none !important;
+  }
+
+  /* Show only the printable modal content */
+  .fixed.inset-0.z-\[250\],
+  .fixed.inset-0.z-\[150\],
+  #printable-report,
+  #printable-receipt {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Reset layout for printable content */
+  .sm\:rounded-3xl, .rounded-t-\[2rem\] {
+    border-radius: 0 !important;
+  }
+
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Table styles for print */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  
+  th, td {
+    border: 1px solid #000 !important;
+    padding: 8px !important;
+    text-align: left !important;
+  }
+
+  .font-black, .font-bold {
+    font-weight: 700 !important;
+    color: black !important;
+  }
 }
 

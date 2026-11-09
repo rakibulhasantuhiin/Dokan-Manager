@@ -713,8 +713,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {}
 
     const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
-    let isFirstSnapshotForSession = true;
-
+    
     setIsCloudSyncing(true);
 
     const unsubscribe = onSnapshot(
@@ -725,13 +724,24 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
           const isPending = docSnap.metadata.hasPendingWrites;
 
-          // Always accept the initial remote snapshot upon login or if remote data is >= last local mutation
-          if (isFirstSnapshotForSession || isPending || remoteTime >= lastLocalMutationAt.current) {
-            isFirstSnapshotForSession = false;
-            lastLocalMutationAt.current = Math.max(lastLocalMutationAt.current, remoteTime);
-            try {
-              localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', lastLocalMutationAt.current.toString());
-            } catch {}
+          // CRITICAL SYNC FIX:
+          // We only accept cloud data if:
+          // 1. It is literally newer than our last LOCAL mutation.
+          // 2. OR it is marked as 'pending' (meaning it's our own write propagating back).
+          // 3. OR our local state is completely empty (first login).
+          
+          const localTime = lastLocalMutationAt.current;
+          const isRemoteNewer = remoteTime > localTime;
+          const isLocalEmpty = stateRef.current.products.length === 0 && stateRef.current.customers.length === 0;
+
+          if (isRemoteNewer || isPending || isLocalEmpty) {
+            // Update local mutation timestamp to match cloud if cloud is newer
+            if (isRemoteNewer) {
+              lastLocalMutationAt.current = remoteTime;
+              try {
+                localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', remoteTime.toString());
+              } catch {}
+            }
 
             if (data.settings) {
               setSettings(data.settings);
@@ -781,19 +791,13 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
             setLastSyncedAt(new Date());
           } else {
+            // If cloud is OLDER than local, we force a sync to push our newer local data to the cloud
+            console.log("Local data is newer than cloud. Pushing local to cloud...");
             triggerOptimizedCloudSync(true);
           }
         } else {
-          isFirstSnapshotForSession = false;
           // Master doc doesn't exist yet on cloud (first login for this PIN):
-          const userDefaultName = currentUser.displayName || 'আমার দোকান';
-          const updated = {
-            ...stateRef.current.settings,
-            shopName: userDefaultName,
-          };
-          setSettings(updated);
-          stateRef.current.settings = updated;
-          try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(updated)); } catch {}
+          // Push current state (might have defaults or imported data)
           triggerOptimizedCloudSync(true);
         }
         setIsCloudSyncing(false);

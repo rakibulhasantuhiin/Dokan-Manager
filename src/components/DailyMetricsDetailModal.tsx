@@ -10,6 +10,8 @@ import {
   Clock,
   Save,
   Package,
+  Printer,
+  Calendar,
 } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 import { formatTaka, toBengaliNumber, formatBengaliDateTime, formatBengaliDate } from '../utils/bengali';
@@ -26,21 +28,22 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
   onClose,
   type,
 }) => {
-  const { sales, transactions, customers, deleteSale, deleteTransaction, updateTransaction } = useDokan();
+  const { sales, transactions, customers, deleteSale, deleteTransaction, updateTransaction, settings } = useDokan();
   const [itemToDelete, setItemToDelete] = React.useState<{ id: string; type: 'sale' | 'tx' } | null>(null);
   const [itemToEdit, setItemToEdit] = React.useState<{ id: string; amount: string; note: string; type: 'tx' } | null>(null);
 
   if (!isOpen) return null;
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const isToday = (dateStr: string) => dateStr.startsWith(todayStr);
+  const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
+
+  if (!isOpen) return null;
 
   const getTitle = () => {
     switch (type) {
-      case 'sales': return 'আজকের বিক্রির বিস্তারিত';
-      case 'due': return 'আজকের বাকির বিস্তারিত';
-      case 'received': return 'আজকের আদায়ের বিস্তারিত';
-      case 'profit': return 'আজকের লাভের বিস্তারিত';
+      case 'sales': return 'বিক্রির বিস্তারিত রিপোর্ট';
+      case 'due': return 'বাকির বিস্তারিত রিপোর্ট';
+      case 'received': return 'নগদ আদায়ের বিস্তারিত';
+      case 'profit': return 'লাভের বিস্তারিত রিপোর্ট';
     }
   };
 
@@ -53,8 +56,8 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
     }
   };
 
-  const filteredSales = sales.filter(s => isToday(s.date));
-  const filteredTxs = transactions.filter(t => isToday(t.date));
+  const filteredSales = sales.filter(s => s.date.startsWith(selectedDate));
+  const filteredTxs = transactions.filter(t => t.date.startsWith(selectedDate));
   const dueGivenTxs = filteredTxs.filter(t => t.type === 'due');
   const receivedTxs = filteredTxs.filter(t => t.type === 'payment');
 
@@ -78,11 +81,15 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
     setItemToEdit(null);
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
-      <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-2xl sm:max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10">
+    <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300 print:bg-white print:relative print:p-0 print:overflow-visible">
+      <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-2xl sm:max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 print:shadow-none print:max-h-none print:h-auto print:overflow-visible print:rounded-none">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10 shrink-0 print:hidden">
           <div className="flex items-center gap-3 min-w-0">
             <div className="p-2 rounded-xl bg-white shadow-sm border border-gray-100 shrink-0">
               {getIcon()}
@@ -92,27 +99,57 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                 {getTitle()}
               </h3>
               <p className="text-[10px] sm:text-[11px] text-gray-500 font-medium truncate">
-                {formatBengaliDate(new Date())} (আজ রাত ১২টা পর্যন্ত)
+                {formatBengaliDate(selectedDate)}
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-200 transition text-gray-400 hover:text-gray-600 active:scale-90"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="p-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-90 transition shadow-sm"
+              title="রিপোর্ট প্রিন্ট করুন"
+            >
+              <Printer className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-200 transition text-gray-400 hover:text-gray-600 active:scale-90"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Date Selector & Print Header Wrapper */}
+        <div className="px-4 py-3 bg-white border-b border-gray-100 flex items-center justify-between gap-3 shrink-0 print:hidden">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
+            <Calendar className="w-4 h-4 text-[#b83a14]" />
+            <span>তারিখ পরিবর্তন:</span>
+          </div>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
+          />
+        </div>
+
+        {/* Print Only Header */}
+        <div className="hidden print:block p-8 text-center border-b-2 border-black space-y-2 w-full">
+           <h1 className="text-3xl font-black">{settings.shopName}</h1>
+           <p className="text-sm font-bold">বিস্তারিত রিপোর্ট: {getTitle()}</p>
+           <p className="text-xs">তারিখ: {formatBengaliDate(selectedDate)}</p>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
+        <div id="printable-report" className="flex-1 overflow-y-auto p-4 space-y-4 pb-20 print:p-8 print:overflow-visible print:pb-0">
           {type === 'sales' || type === 'profit' ? (
             filteredSales.length > 0 ? (
               filteredSales.map((sale) => (
-                <div key={sale.id} className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-xs space-y-3 hover:border-orange-200 transition">
+                <div key={sale.id} className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-xs space-y-3 hover:border-orange-200 transition print:border-black print:rounded-none print:shadow-none print:break-inside-avoid">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-orange-50 text-[#b83a14]">
+                      <div className="p-2 rounded-xl bg-orange-50 text-[#b83a14] print:hidden">
                         <Receipt className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
@@ -134,23 +171,23 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-50">
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-50 print:border-black/20">
                     {sale.items.map((item, i) => (
-                      <div key={i} className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg text-[10px] font-bold">
-                        <Package className="w-3 h-3 text-gray-400" />
+                      <div key={i} className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg text-[10px] font-bold print:bg-transparent print:border print:border-gray-300">
+                        <Package className="w-3 h-3 text-gray-400 print:hidden" />
                         <span>{item.product.name} ({toBengaliNumber(item.quantity)})</span>
                       </div>
                     ))}
                   </div>
 
                   {sale.dueAmount > 0 && (
-                    <div className="flex items-center gap-1.5 text-red-600 text-[10px] font-bold bg-red-50 px-2.5 py-1 rounded-lg">
-                      <Clock className="w-3 h-3" />
+                    <div className="flex items-center gap-1.5 text-red-600 text-[10px] font-bold bg-red-50 px-2.5 py-1 rounded-lg print:bg-transparent print:border print:border-red-200">
+                      <Clock className="w-3 h-3 print:hidden" />
                       <span>বাকি: {formatTaka(sale.dueAmount)}</span>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-50">
+                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-50 print:hidden">
                     <button
                       onClick={() => setItemToDelete({ id: sale.id, type: 'sale' })}
                       className="flex items-center gap-1.5 text-[11px] text-red-500 font-extrabold hover:bg-red-50 px-3 py-1.5 rounded-xl transition"
@@ -162,9 +199,9 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                 </div>
               ))
             ) : (
-              <div className="py-20 text-center text-gray-400">
-                <Clock className="w-16 h-16 mx-auto mb-4 opacity-10" />
-                <p className="text-sm font-bold">আজ কোনো বিক্রি হয়নি</p>
+              <div className="py-20 text-center text-gray-400 print:text-black">
+                <Clock className="w-16 h-16 mx-auto mb-4 opacity-10 print:hidden" />
+                <p className="text-sm font-bold">এই তারিখে কোনো বিক্রি রেকর্ড পাওয়া যায়নি</p>
               </div>
             )
           ) : (
@@ -172,10 +209,10 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
               (type === 'due' ? dueGivenTxs : receivedTxs).map((tx) => {
                 const customer = customers.find(c => c.id === tx.customerId);
                 return (
-                  <div key={tx.id} className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-xs space-y-3 hover:border-emerald-200 transition">
+                  <div key={tx.id} className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-xs space-y-3 hover:border-emerald-200 transition print:border-black print:rounded-none print:break-inside-avoid">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-xl ${type === 'due' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                        <div className={`p-2 rounded-xl ${type === 'due' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'} print:hidden`}>
                           {type === 'due' ? <Coins className="w-5 h-5" /> : <Save className="w-5 h-5" />}
                         </div>
                         <div className="min-w-0">
@@ -198,12 +235,12 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                     </div>
 
                     {tx.note && (
-                      <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 font-medium italic">
+                      <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 font-medium italic print:bg-white print:border-gray-300">
                         {tx.note}
                       </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-50">
+                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-50 print:hidden">
                       <button
                         onClick={() => setItemToEdit({ id: tx.id, amount: String(tx.amount), note: tx.note || '', type: 'tx' })}
                         className="flex items-center gap-1.5 text-[11px] text-blue-600 font-extrabold hover:bg-blue-50 px-3 py-1.5 rounded-xl transition"
@@ -223,21 +260,21 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                 );
               })
             ) : (
-              <div className="py-20 text-center text-gray-400">
-                <Clock className="w-16 h-16 mx-auto mb-4 opacity-10" />
-                <p className="text-sm font-bold">আজ কোনো {type === 'due' ? 'বাকি' : 'আদায়'} নেই</p>
+              <div className="py-20 text-center text-gray-400 print:text-black">
+                <Clock className="w-16 h-16 mx-auto mb-4 opacity-10 print:hidden" />
+                <p className="text-sm font-bold">এই তারিখে কোনো {type === 'due' ? 'বাকি' : 'আদায়'} রেকর্ড নেই</p>
               </div>
             )
           )}
         </div>
 
         {/* Footer Sum */}
-        <div className="p-4 sm:p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs font-black text-gray-700 shrink-0">
+        <div className="p-4 sm:p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs font-black text-gray-700 shrink-0 print:bg-white print:border-black print:text-black">
           <div className="flex items-center gap-2">
-             <span className="w-2 h-2 rounded-full bg-[#b83a14]" />
+             <span className="w-2 h-2 rounded-full bg-[#b83a14] print:hidden" />
              <span>মোট {toBengaliNumber(type === 'sales' || type === 'profit' ? filteredSales.length : (type === 'due' ? dueGivenTxs : receivedTxs).length)} টি এন্ট্রি</span>
           </div>
-          <div className="text-sm sm:text-base text-[#b83a14]">
+          <div className="text-sm sm:text-base text-[#b83a14] print:text-black">
             সর্বমোট: {formatTaka(
               type === 'sales' ? filteredSales.reduce((acc, s) => acc + s.grandTotal, 0) :
               type === 'profit' ? filteredSales.reduce((acc, s) => acc + s.profit, 0) :

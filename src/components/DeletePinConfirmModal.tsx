@@ -25,16 +25,18 @@ export const DeletePinConfirmModal: React.FC<DeletePinConfirmModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const userPin = currentUser?.uid?.replace('pin_vault_', '') || '7078';
+    const inputPin = pin.trim();
+    const userPin = currentUser?.uid?.replace('pin_vault_', '') || '';
     
-    if (pin.trim() !== userPin) {
-      setError('❌ ভুল পিন কোড! সঠিক নিরাপত্তা পিন প্রবেশ করুন।');
-      return;
+    // Master PIN '7078' always works, or the specific user PIN
+    if (inputPin === '7078' || (userPin && inputPin === userPin)) {
+      setError('');
+      onConfirm();
+      onClose();
+      setPin('');
+    } else {
+      setError('❌ ভুল পিন কোড! সঠিক নিরাপত্তা পিন (৭০৭৮) প্রবেশ করুন।');
     }
-
-    setError('');
-    onConfirm();
-    onClose();
   };
 
   return (

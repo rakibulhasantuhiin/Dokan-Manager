@@ -129,39 +129,39 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
-      <div className="bg-white rounded-none sm:rounded-3xl w-full h-full sm:h-auto sm:max-w-xl sm:max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
+      <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[92dvh] sm:h-auto sm:max-w-xl sm:max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-300">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
           <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
             <span>{productId ? 'পণ্য সম্পাদনা' : '+ নতুন পণ্য যোগ'}</span>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 text-[#b83a14]">
               {mainCategory}
             </span>
           </h3>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg bg-gray-50 active:scale-90 transition-transform">
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg bg-gray-50 active:scale-90 transition-transform">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable Form Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 sm:p-8 space-y-4 pb-24 sm:pb-8">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:p-8 space-y-5 pb-32 sm:pb-8">
           {formError && (
-            <div className="mb-2 text-xs bg-red-50 text-red-600 p-2 rounded-lg border border-red-200 font-semibold">
+            <div className="mb-2 text-xs bg-red-50 text-red-600 p-3 rounded-xl border border-red-200 font-bold animate-in shake duration-300">
               {formError}
             </div>
           )}
 
-          <form id="product-form-modal" onSubmit={handleSave} className="space-y-4 text-xs sm:text-sm">
+          <form id="product-form-modal" onSubmit={handleSave} className="space-y-5 text-xs sm:text-sm">
             {/* 3 Category Buttons */}
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleMainCategoryChange('মুদি')}
-                className={`py-3 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                className={`py-3 px-1 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   mainCategory === 'মুদি'
-                    ? 'bg-amber-500 text-white border-amber-600 font-bold shadow-sm scale-[1.02]'
-                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                    ? 'bg-amber-500 text-white border-amber-600 font-bold shadow-md scale-[1.02]'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
                 }`}
               >
                 <ShoppingBasket className="w-4 h-4" />
@@ -171,10 +171,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleMainCategoryChange('স্টেশনারি')}
-                className={`py-3 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                className={`py-3 px-1 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   mainCategory === 'স্টেশনারি'
-                    ? 'bg-blue-600 text-white border-blue-700 font-bold shadow-sm scale-[1.02]'
-                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                    ? 'bg-blue-600 text-white border-blue-700 font-bold shadow-md scale-[1.02]'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
                 }`}
               >
                 <BookOpen className="w-4 h-4" />
@@ -184,10 +184,10 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               <button
                 type="button"
                 onClick={() => handleMainCategoryChange('কম্পিউটার সার্ভিস')}
-                className={`py-3 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+                className={`py-3 px-1 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center gap-1.5 ${
                   mainCategory === 'কম্পিউটার সার্ভিস'
-                    ? 'bg-purple-600 text-white border-purple-700 font-bold shadow-sm scale-[1.02]'
-                    : 'bg-gray-50 text-gray-700 border-gray-200'
+                    ? 'bg-purple-600 text-white border-purple-700 font-bold shadow-md scale-[1.02]'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
                 }`}
               >
                 <Monitor className="w-4 h-4" />
@@ -196,9 +196,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
             </div>
 
             {/* Form Fields */}
-            <div className="space-y-3">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                   পণ্যের নাম <span className="text-[#b83a14]">*</span>
                 </label>
                 <input
@@ -207,12 +207,12 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="যেমন: মিনিকেট চাল / বলপেন"
-                  className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:border-[#b83a14] focus:bg-white transition-all text-sm font-bold"
+                  className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:border-[#b83a14] focus:bg-white transition-all text-sm font-bold text-gray-900 shadow-xs"
                 />
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                   সাব-ক্যাটাগরি বা ট্যাগ
                 </label>
                 <input
@@ -220,13 +220,13 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                   value={subCategory}
                   onChange={(e) => setSubCategory(e.target.value)}
                   placeholder="যেমন: চাল, তেল, খাতা"
-                  className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-sm"
+                  className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-sm font-semibold text-gray-800"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     মাপের ধরন
                   </label>
                   <select
@@ -239,7 +239,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       else if (val === 'service') setUnit('কাজ');
                       else setUnit('পিস');
                     }}
-                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-xs"
+                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-xs cursor-pointer shadow-xs"
                   >
                     <option value="weight">ওজন (কেজি/গ্রাম)</option>
                     <option value="count">পিস/সংখ্যা/রিম</option>
@@ -247,14 +247,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     <option value="service">সার্ভিস/পাতা</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     একক
                   </label>
                   <select
                     value={unit}
                     onChange={(e) => setUnit(e.target.value as UnitType)}
-                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-xs"
+                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-xs cursor-pointer shadow-xs"
                   >
                     <option value="কেজি">কেজি</option>
                     <option value="গ্রাম">গ্রাম</option>
@@ -272,8 +272,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     কেনা দাম (৳)
                   </label>
                   <input
@@ -281,11 +281,11 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     value={purchasePrice}
                     onChange={(e) => setPurchasePrice(e.target.value)}
                     placeholder="০"
-                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-black text-[#b83a14]"
+                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-black text-[#b83a14] shadow-xs"
                   />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     বিক্রির দাম (৳)
                   </label>
                   <input
@@ -293,36 +293,36 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                     value={sellingPrice}
                     onChange={(e) => setSellingPrice(e.target.value)}
                     placeholder="০"
-                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 font-black text-emerald-700"
+                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-600 font-black text-emerald-700 shadow-xs"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     স্টক ({unit})
                   </label>
                   <input
                     type="number"
                     value={currentStock}
                     onChange={(e) => setCurrentStock(e.target.value)}
-                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold"
+                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-gray-900 shadow-xs"
                   />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     সতর্কতা ({unit})
                   </label>
                   <input
                     type="number"
                     value={lowStockAlert}
                     onChange={(e) => setLowStockAlert(e.target.value)}
-                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-amber-700"
+                    className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-amber-700 shadow-xs"
                   />
                 </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
+                <div className="col-span-2 sm:col-span-1 space-y-1.5">
+                  <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest px-1">
                     বারকোড
                   </label>
                   <div className="relative flex items-center">
@@ -331,13 +331,13 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
                       value={barcode}
                       onChange={(e) => setBarcode(e.target.value)}
                       placeholder="স্ক্যান"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-mono text-xs"
+                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-3 pr-11 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-mono text-xs font-bold shadow-xs"
                     />
                     {onOpenScanner && (
                       <button
                         type="button"
                         onClick={() => onOpenScanner((code) => setBarcode(code))}
-                        className="absolute right-2 p-1.5 text-gray-500 hover:text-[#b83a14] bg-white rounded-lg shadow-sm"
+                        className="absolute right-2 p-2 text-gray-500 hover:text-[#b83a14] bg-white rounded-lg shadow-sm border border-gray-100 active:scale-90 transition-transform"
                       >
                         <Camera className="w-4 h-4" />
                       </button>
@@ -349,22 +349,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
           </form>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 sm:p-6 border-t border-gray-100 bg-white/95 backdrop-blur-md shrink-0">
-          <div className="max-w-md mx-auto grid grid-cols-2 gap-3">
+        {/* Sticky Footer */}
+        <div className="p-4 sm:p-6 border-t border-gray-100 bg-white/95 backdrop-blur-md shrink-0 sticky bottom-0 z-20">
+          <div className="max-w-md mx-auto grid grid-cols-2 gap-3.5">
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-3.5 bg-white hover:bg-gray-100 active:scale-95 text-gray-700 border-2 border-gray-200 rounded-2xl font-bold text-sm transition cursor-pointer"
+              className="w-full py-4 bg-gray-50 hover:bg-gray-100 active:scale-95 text-gray-700 border-2 border-gray-200 rounded-2xl font-bold text-sm transition cursor-pointer"
             >
               বাতিল
             </button>
             <button
               type="submit"
               form="product-form-modal"
-              className="w-full py-3.5 animate-gradient-terracotta hover:brightness-110 active:scale-95 text-white rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 animate-gradient-terracotta hover:brightness-110 active:scale-95 text-white rounded-2xl font-black text-sm shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Save className="w-4 h-4" />
+              <Save className="w-4 h-4 stroke-[2.5]" />
               <span>পণ্য সংরক্ষণ করুন</span>
             </button>
           </div>
