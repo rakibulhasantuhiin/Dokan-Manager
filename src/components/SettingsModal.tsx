@@ -37,7 +37,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
   const [phone, setPhone] = useState(settings.phone);
   const [address, setAddress] = useState(settings.address);
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
-  const [showInstallHelp, setShowInstallHelp] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,12 +149,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             ) : (
               <button
                 type="button"
-                onClick={async () => {
-                  const res = await install();
-                  if (!res) {
-                    setShowInstallHelp(true);
-                  }
-                }}
+                onClick={() => install()}
                 className="w-full flex items-center justify-center gap-2 animate-gradient-terracotta text-white text-xs sm:text-sm font-extrabold px-4 py-3 rounded-xl shadow-md transition active:scale-95 cursor-pointer"
               >
                 <Download className="w-5 h-5" />
@@ -164,38 +158,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             )}
           </div>
 
-          {/* Interactive PWA Installation Instructions */}
-          {showInstallHelp && !isInstalled && (
-            <div className="mt-3 pt-3 border-t border-orange-200 text-xs text-gray-800 space-y-2.5 bg-white p-3.5 rounded-xl border border-orange-100 shadow-2xs">
-              <div className="font-bold text-gray-900 text-sm flex items-center gap-1.5 text-[#b83a14]">
-                <span>📱 ব্রাউজার থেকে অ্যাপ ইনস্টল করার সহজ উপায়</span>
-              </div>
 
-              {isIOS ? (
-                <div className="space-y-1.5 bg-amber-50/80 p-2.5 rounded-lg border border-amber-200 text-xs">
-                  <div className="font-bold text-amber-900">আইফোন / আইপ্যাডে (iOS Safari):</div>
-                  <p>১. সাফারি (Safari) ব্রাউজারের নিচের <strong>শেয়ার (Share <Share2 className="w-3 h-3 inline" />)</strong> আইকনে চাপ দিন।</p>
-                  <p>২. অপশনগুলো নিচে নামিয়ে <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> চাপুন।</p>
-                  <p>৩. উপরে ডান কোণায় <strong>'Add'</strong> এ চাপ দিলে ফোনের হোম স্ক্রিনে সুন্দর লোগো সহ অ্যাপ চলে আসবে!</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="bg-orange-50/80 p-2.5 rounded-lg border border-orange-200 text-xs">
-                    <div className="font-bold text-gray-900 mb-1">Android / Chrome / Edge ব্রাউজার নির্দেশিকা:</div>
-                    <ol className="list-decimal list-inside space-y-1 text-gray-700">
-                      <li>ব্রাউজারের উপরে ডান কোণায় <strong>থ্রি-ডট (⋮)</strong> মেনু বাটনে ক্লিক করুন।</li>
-                      <li>তালিকা থেকে <strong>'Install App' (অ্যাপ ইনস্টল করুন)</strong> অথবা <strong>'Add to Home Screen' (হোম স্ক্রিনে যোগ করুন)</strong> নির্বাচন করুন।</li>
-                      <li><strong>'Install'</strong> বা <strong>'Add'</strong> বাটনে চাপ দিলেই কয়েক সেকেন্ডে আপনার ফোনের হোম স্ক্রিনে আসল অ্যাপের মতো আইকন যুক্ত হয়ে যাবে!</li>
-                    </ol>
-                  </div>
-
-                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-[11px] text-gray-600">
-                    💡 <strong>কম্পিউটার (Windows / Mac) ব্যবহারকারীদের জন্য:</strong> ক্রোম বা এজ ব্রাউজারের উপরে এড্রেস বারের (URL Bar) ডান পাশে থাকা <strong>ইনস্টল (⊕)</strong> বাটনে ক্লিক করে ল্যাপটপ/পিসিতেও ইনস্টল করতে পারবেন।
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* 2. Shop Details Form */}
@@ -265,73 +228,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
           </button>
         </form>
 
-        {/* 3. Backup & Restore Section */}
-        <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
-          <h4 className="font-bold text-gray-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
-            <HardDrive className="w-4 h-4 text-gray-600" />
-            <span>অফলাইন ফাইল ব্যাকআপ ও রিস্টোর</span>
-          </h4>
-
-          <div className="grid grid-cols-2 gap-2.5">
-            <button
-              type="button"
-              onClick={handleExportBackup}
-              className="flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 rounded-xl font-bold text-xs transition active:scale-95"
-            >
-              <Download className="w-4 h-4" />
-              <span>ফাইল ডাউনলোড</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 text-gray-800 rounded-xl font-bold text-xs transition active:scale-95"
-            >
-              <Upload className="w-4 h-4" />
-              <span>ফাইল রিস্টোর</span>
-            </button>
-
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImportFile}
-              accept=".json"
-              className="hidden"
-            />
-          </div>
-
-          {/* Reset sample data & PIN Lock */}
-          <div className="pt-2 flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                if (
-                  confirm(
-                    'আপনি কি নিশ্চিত যে নমুনা ডেটা দিয়ে অ্যাপ রিসেট করতে চান? আপনার বর্তমান পরিবর্তন মুছে যাবে।'
-                  )
-                ) {
-                  resetAllData();
-                  onClose();
-                }
-              }}
-              className="flex-1 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span>নমুনা ডেটা রিসেট করুন</span>
-            </button>
-
+        <div className="mt-6 pt-4 border-t border-gray-200">
             {currentUser && (
               <button
                 type="button"
                 onClick={handleLogout}
-                className="py-2 px-4 bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-300 hover:border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
+                className="w-full py-3.5 bg-gray-100 hover:bg-red-50 text-gray-700 hover:text-red-700 border border-gray-300 hover:border-red-200 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 transition active:scale-95"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>পিন লক / প্রস্থান</span>
+                <LogOut className="w-4 h-4" />
+                <span>পিন লক / প্রস্থান করুন</span>
               </button>
             )}
           </div>
-        </div>
       </motion.div>
     </motion.div>
   );

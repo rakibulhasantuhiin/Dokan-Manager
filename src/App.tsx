@@ -20,9 +20,10 @@ import { Customer, SaleRecord } from './types';
 
 import { DailyBusinessReportModal } from './components/DailyBusinessReportModal';
 import { DailyMetricsDetailModal } from './components/DailyMetricsDetailModal';
+import { ProductFormModal } from './components/ProductFormModal';
 
 function MainContent() {
-  const { activeGlobalModal, setActiveGlobalModal } = useDokan();
+  const { activeGlobalModal, setActiveGlobalModal, productModalData, setProductModalData } = useDokan();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
@@ -206,11 +207,21 @@ function MainContent() {
         onClose={() => setActiveGlobalModal(null)}
       />
 
-      {/* Global Daily Metrics Detail Modal */}
       <DailyMetricsDetailModal
         isOpen={metricsDetail.isOpen}
         type={metricsDetail.type}
         onClose={() => setMetricsDetail({ ...metricsDetail, isOpen: false })}
+      />
+
+      {/* Global Product Form Modal (Fixed viewport fit) */}
+      <ProductFormModal
+        isOpen={activeGlobalModal === 'product_form'}
+        productId={productModalData?.id || null}
+        onClose={() => {
+          setActiveGlobalModal(null);
+          setProductModalData(null);
+        }}
+        onOpenScanner={(cb) => setScannerCallback(() => cb)}
       />
     </div>
   );

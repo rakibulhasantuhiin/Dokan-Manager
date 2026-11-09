@@ -8,12 +8,11 @@ import {
   Coins,
   TrendingUp,
   Clock,
-  User,
+  Save,
   Package,
 } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 import { formatTaka, toBengaliNumber, formatBengaliDateTime, formatBengaliDate } from '../utils/bengali';
-import { SaleRecord, CustomerTransaction } from '../types';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
 
 interface DailyMetricsDetailModalProps {
@@ -33,15 +32,8 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
 
   if (!isOpen) return null;
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const isToday = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d >= today && d < tomorrow;
-  };
+  const todayStr = new Date().toISOString().split('T')[0];
+  const isToday = (dateStr: string) => dateStr.startsWith(todayStr);
 
   const getTitle = () => {
     switch (type) {
@@ -87,12 +79,12 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-[160] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
-      <div className="bg-white rounded-t-[2rem] sm:rounded-2xl w-full h-[85dvh] sm:h-auto sm:max-w-2xl sm:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10">
+    <div className="fixed inset-0 z-[250] flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 overflow-hidden animate-in fade-in duration-300">
+      <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-2xl sm:max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10">
         {/* Header */}
-        <div className="p-3 sm:p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
-            <div className="p-1.5 sm:p-2 rounded-xl bg-white shadow-sm border border-gray-100 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 rounded-xl bg-white shadow-sm border border-gray-100 shrink-0">
               {getIcon()}
             </div>
             <div className="min-w-0">
@@ -113,15 +105,15 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
           {type === 'sales' || type === 'profit' ? (
             filteredSales.length > 0 ? (
               filteredSales.map((sale) => (
-                <div key={sale.id} className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-sm space-y-2.5 hover:border-orange-200 transition">
+                <div key={sale.id} className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-xs space-y-3 hover:border-orange-200 transition">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-orange-50 text-[#b83a14]">
-                        <Receipt className="w-4 h-4" />
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-orange-50 text-[#b83a14]">
+                        <Receipt className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
                         <div className="font-bold text-gray-900 text-sm truncate">
@@ -133,38 +125,46 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-extrabold text-[#b83a14] text-base">
+                      <div className="font-extrabold text-[#b83a14] text-base sm:text-lg">
                         {formatTaka(type === 'profit' ? sale.profit : sale.grandTotal)}
                       </div>
-                      <div className="text-[10px] text-gray-500 font-bold">
+                      <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
                         {type === 'profit' ? 'লাভ' : 'বিক্রি'}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 border-t border-gray-50 pt-2.5">
+                  <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-50">
                     {sale.items.map((item, i) => (
-                      <span key={i} className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium">
-                        {item.product.name} ({toBengaliNumber(item.quantity)})
-                      </span>
+                      <div key={i} className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                        <Package className="w-3 h-3 text-gray-400" />
+                        <span>{item.product.name} ({toBengaliNumber(item.quantity)})</span>
+                      </div>
                     ))}
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-1 border-t border-gray-50">
+                  {sale.dueAmount > 0 && (
+                    <div className="flex items-center gap-1.5 text-red-600 text-[10px] font-bold bg-red-50 px-2.5 py-1 rounded-lg">
+                      <Clock className="w-3 h-3" />
+                      <span>বাকি: {formatTaka(sale.dueAmount)}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-50">
                     <button
                       onClick={() => setItemToDelete({ id: sale.id, type: 'sale' })}
-                      className="flex items-center gap-1 text-[11px] text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded-lg transition"
+                      className="flex items-center gap-1.5 text-[11px] text-red-500 font-extrabold hover:bg-red-50 px-3 py-1.5 rounded-xl transition"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                       <span>মুছে ফেলুন</span>
                     </button>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="py-12 text-center text-gray-400">
-                <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p className="text-sm font-medium">আজ কোনো বিক্রি হয়নি</p>
+              <div className="py-20 text-center text-gray-400">
+                <Clock className="w-16 h-16 mx-auto mb-4 opacity-10" />
+                <p className="text-sm font-bold">আজ কোনো বিক্রি হয়নি</p>
               </div>
             )
           ) : (
@@ -172,11 +172,11 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
               (type === 'due' ? dueGivenTxs : receivedTxs).map((tx) => {
                 const customer = customers.find(c => c.id === tx.customerId);
                 return (
-                  <div key={tx.id} className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-sm space-y-2.5 hover:border-emerald-200 transition">
+                  <div key={tx.id} className="bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-xs space-y-3 hover:border-emerald-200 transition">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-lg ${type === 'due' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                          {type === 'due' ? <Coins className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-xl ${type === 'due' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                          {type === 'due' ? <Coins className="w-5 h-5" /> : <Save className="w-5 h-5" />}
                         </div>
                         <div className="min-w-0">
                           <div className="font-bold text-gray-900 text-sm truncate">
@@ -188,34 +188,34 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className={`font-extrabold text-base ${type === 'due' ? 'text-red-600' : 'text-emerald-600'}`}>
+                        <div className={`font-extrabold text-base sm:text-lg ${type === 'due' ? 'text-red-600' : 'text-emerald-600'}`}>
                           {formatTaka(tx.amount)}
                         </div>
-                        <div className="text-[10px] text-gray-500 font-bold">
+                        <div className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
                           {type === 'due' ? 'বাকি' : 'আদায়'}
                         </div>
                       </div>
                     </div>
 
                     {tx.note && (
-                      <div className="text-[11px] text-gray-600 bg-gray-50 p-1.5 rounded-lg border border-gray-100 italic">
+                      <div className="text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 font-medium italic">
                         {tx.note}
                       </div>
                     )}
 
-                    <div className="flex items-center justify-end gap-3 pt-1 border-t border-gray-50">
+                    <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-50">
                       <button
                         onClick={() => setItemToEdit({ id: tx.id, amount: String(tx.amount), note: tx.note || '', type: 'tx' })}
-                        className="flex items-center gap-1 text-[11px] text-blue-600 font-bold hover:bg-blue-50 px-2 py-1 rounded-lg transition"
+                        className="flex items-center gap-1.5 text-[11px] text-blue-600 font-extrabold hover:bg-blue-50 px-3 py-1.5 rounded-xl transition"
                       >
-                        <Edit2 className="w-3.5 h-3.5" />
+                        <Edit2 className="w-4 h-4" />
                         <span>এডিট</span>
                       </button>
                       <button
                         onClick={() => setItemToDelete({ id: tx.id, type: 'tx' })}
-                        className="flex items-center gap-1 text-[11px] text-red-500 font-bold hover:bg-red-50 px-2 py-1 rounded-lg transition"
+                        className="flex items-center gap-1.5 text-[11px] text-red-500 font-extrabold hover:bg-red-50 px-3 py-1.5 rounded-xl transition"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                         <span>মুছে ফেলুন</span>
                       </button>
                     </div>
@@ -223,20 +223,21 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
                 );
               })
             ) : (
-              <div className="py-12 text-center text-gray-400">
-                <Clock className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p className="text-sm font-medium">আজ কোনো {type === 'due' ? 'বাকি' : 'আদায়'} নেই</p>
+              <div className="py-20 text-center text-gray-400">
+                <Clock className="w-16 h-16 mx-auto mb-4 opacity-10" />
+                <p className="text-sm font-bold">আজ কোনো {type === 'due' ? 'বাকি' : 'আদায়'} নেই</p>
               </div>
             )
           )}
         </div>
 
-        {/* Footer info */}
-        <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold text-gray-500">
-          <div>
-            মোট {toBengaliNumber(type === 'sales' || type === 'profit' ? filteredSales.length : (type === 'due' ? dueGivenTxs : receivedTxs).length)} টি এন্ট্রি
+        {/* Footer Sum */}
+        <div className="p-4 sm:p-5 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-xs font-black text-gray-700 shrink-0">
+          <div className="flex items-center gap-2">
+             <span className="w-2 h-2 rounded-full bg-[#b83a14]" />
+             <span>মোট {toBengaliNumber(type === 'sales' || type === 'profit' ? filteredSales.length : (type === 'due' ? dueGivenTxs : receivedTxs).length)} টি এন্ট্রি</span>
           </div>
-          <div className="text-gray-900">
+          <div className="text-sm sm:text-base text-[#b83a14]">
             সর্বমোট: {formatTaka(
               type === 'sales' ? filteredSales.reduce((acc, s) => acc + s.grandTotal, 0) :
               type === 'profit' ? filteredSales.reduce((acc, s) => acc + s.profit, 0) :
@@ -251,48 +252,57 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
       <DeletePinConfirmModal
         isOpen={!!itemToDelete}
         title={itemToDelete?.type === 'sale' ? 'বিক্রি মুছে ফেলা' : 'লেনদেন মুছে ফেলা'}
-        itemName="এই রেকর্ডটি মুছে ফেললে হিসাব পরিবর্তিত হবে।"
+        itemName="এই রেকর্ডটি মুছে ফেললে আপনার ব্যবসার মোট হিসাবে পরিবর্তন হবে।"
         onConfirm={handleDeleteConfirm}
         onClose={() => setItemToDelete(null)}
       />
 
       {/* Edit Tx Modal */}
       {itemToEdit && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/40 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-5 shadow-2xl space-y-4">
-            <h4 className="font-bold text-gray-900 border-b pb-2">এন্ট্রি এডিট করুন</h4>
-            <form onSubmit={handleUpdateTx} className="space-y-3">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h4 className="font-black text-gray-900 text-lg">এন্ট্রি সংশোধন করুন</h4>
+              <button onClick={() => setItemToEdit(null)} className="p-1 text-gray-400">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateTx} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1">পরিমাণ (৳)</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">টাকার পরিমাণ (৳)</label>
                 <input
                   type="number"
+                  step="any"
+                  autoFocus
                   value={itemToEdit.amount}
                   onChange={(e) => setItemToEdit({ ...itemToEdit, amount: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
+                  className="w-full bg-gray-50 border-2 border-gray-200 rounded-2xl px-4 py-3 text-lg font-black text-[#b83a14] focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white transition-all"
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1">নোট</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider">নোট / বিবরণ</label>
                 <input
                   type="text"
                   value={itemToEdit.note}
                   onChange={(e) => setItemToEdit({ ...itemToEdit, note: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
+                  placeholder="বিবরণ লিখুন"
+                  className="w-full bg-gray-50 border-2 border-gray-200 rounded-2xl px-4 py-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white transition-all"
                 />
               </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#b83a14] text-white py-2 rounded-xl font-bold text-xs"
-                >
-                  সংরক্ষণ
-                </button>
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setItemToEdit(null)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl font-bold text-xs"
+                  className="flex-1 bg-gray-100 text-gray-700 py-3.5 rounded-2xl font-bold text-sm active:scale-95 transition"
                 >
                   বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 animate-gradient-terracotta text-white py-3.5 rounded-2xl font-black text-sm shadow-md active:scale-95 transition"
+                >
+                  সংরক্ষণ
                 </button>
               </div>
             </form>

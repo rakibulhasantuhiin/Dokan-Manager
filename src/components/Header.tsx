@@ -85,28 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenSettings, onOpenInstallMod
 
         {/* Right side: Cloud Sync status, PWA Install & Settings */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* Cloud Sync Status Indicator */}
-          {currentUser ? (
-            <div
-              className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-xs px-2.5 py-1 rounded-full font-medium border border-white/20"
-              title={`গুগল ক্লাউড সিঙ্ক চালু: ${currentUser.email}`}
-            >
-              <span className={`w-2 h-2 rounded-full ${isCloudSyncing ? 'bg-amber-300 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
-              <span className="hidden sm:inline font-semibold">
-                {isCloudSyncing ? 'সিঙ্ক হচ্ছে...' : 'ক্লাউড সিঙ্ক'}
-              </span>
-            </div>
-          ) : (
-            <button
-              onClick={onOpenSettings}
-              className="hidden sm:flex items-center gap-1 bg-white/15 hover:bg-white/25 text-white/95 text-[11px] px-2 py-1 rounded-full font-semibold border border-white/20 transition active:scale-95"
-              title="আজীবন ক্লাউড ব্যাকআপ চালু করতে চাপ দিন"
-            >
-              <Cloud className="w-3 h-3 text-amber-300" />
-              <span>ক্লাউড ব্যাকআপ</span>
-            </button>
-          )}
-
+          {/* Network Status Indicator */}
           {!isOnline && (
             <div className="flex items-center gap-1 bg-amber-500/90 text-white text-xs px-2 py-1 rounded-full font-medium" title="অফলাইন মোড চালু">
               <WifiOff className="w-3.5 h-3.5" />

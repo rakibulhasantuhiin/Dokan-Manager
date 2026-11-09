@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, Lock, Trash2, X, ShieldAlert } from 'lucide-react';
+import { useDokan } from '../context/DokanContext';
 
 interface DeletePinConfirmModalProps {
   isOpen: boolean;
@@ -9,8 +10,6 @@ interface DeletePinConfirmModalProps {
   onClose: () => void;
 }
 
-const REQUIRED_PIN = '7078';
-
 export const DeletePinConfirmModal: React.FC<DeletePinConfirmModalProps> = ({
   isOpen,
   title,
@@ -18,6 +17,7 @@ export const DeletePinConfirmModal: React.FC<DeletePinConfirmModalProps> = ({
   onConfirm,
   onClose,
 }) => {
+  const { currentUser } = useDokan();
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
 
@@ -25,8 +25,10 @@ export const DeletePinConfirmModal: React.FC<DeletePinConfirmModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pin.trim() !== REQUIRED_PIN) {
-      setError('❌ ভুল পিন কোড! সঠিক ৪ ডিজিট পিন কোড (7078) প্রবেশ করুন।');
+    const userPin = currentUser?.uid?.replace('pin_vault_', '') || '7078';
+    
+    if (pin.trim() !== userPin) {
+      setError('❌ ভুল পিন কোড! সঠিক নিরাপত্তা পিন প্রবেশ করুন।');
       return;
     }
 
@@ -36,81 +38,78 @@ export const DeletePinConfirmModal: React.FC<DeletePinConfirmModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-5 sm:p-6 shadow-2xl border border-red-100 transition-all transform duration-200">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 shadow-2xl border border-red-100 animate-in zoom-in-95 duration-200">
         {/* Top Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-          <div className="flex items-center gap-2 text-red-600 font-bold text-base">
-            <ShieldAlert className="w-5 h-5 stroke-[2.2]" />
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5 text-red-600 font-black text-base sm:text-lg">
+            <ShieldAlert className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             <span>{title}</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+            className="p-1.5 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition active:scale-90"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Warning Banner */}
-        <div className="mt-3.5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5">
-          <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-red-800 leading-relaxed font-semibold">
+        <div className="mt-5 p-4 rounded-2xl bg-red-50 border-2 border-red-100 flex items-start gap-3">
+          <AlertTriangle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+          <div className="text-xs sm:text-sm text-red-900 leading-snug font-bold">
             {itemName && (
-              <span className="block font-bold text-red-900 mb-0.5">
+              <span className="block font-black text-red-700 mb-1">
                 "{itemName}"
               </span>
             )}
-            এটি ডিলিট করলে পরবর্তীতে আর কখনো ফেরত পাওয়া যাবে না!
+            এটি ডিলিট করলে পরবর্তীতে আর কখনো ফেরত পাওয়া যাবে না! আপনি কি নিশ্চিত?
           </div>
         </div>
 
         {/* Error message */}
         {error && (
-          <div className="mt-2.5 p-2 rounded-lg bg-red-100 text-red-700 text-xs font-bold border border-red-300">
+          <div className="mt-4 p-3 rounded-xl bg-red-100 text-red-700 text-xs font-black border-2 border-red-200 animate-pulse">
             {error}
           </div>
         )}
 
-        {/* Form requiring 7078 PIN */}
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+        {/* Form requiring security PIN */}
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-gray-500" />
-              <span>ডিলিট নিশ্চিত করতে পিন কোড দিন:</span>
+            <label className="block text-[11px] font-black text-gray-500 mb-2 flex items-center gap-1.5 uppercase tracking-widest">
+              <Lock className="w-4 h-4 text-gray-400" />
+              <span>নিরাপত্তা পিন কোড দিন:</span>
             </label>
             <input
               type="password"
               inputMode="numeric"
-              maxLength={4}
+              maxLength={12}
               autoFocus
               value={pin}
               onChange={(e) => {
                 setPin(e.target.value);
                 if (error) setError('');
               }}
-              placeholder="৪ ডিজিট পিন লিখুন"
-              className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3.5 py-2.5 text-center text-lg font-mono tracking-widest font-bold focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white"
+              placeholder="••••"
+              className="w-full bg-[#fbfaf8] border-2 border-gray-300 rounded-2xl px-4 py-3.5 text-center text-2xl font-black tracking-[0.5em] text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white transition-all shadow-inner"
             />
-            <span className="text-[11px] text-gray-400 block text-center mt-1">
-              (সিকিউরিটি পিন: 7078)
-            </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
+          <div className="grid grid-cols-2 gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="py-2.5 px-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-bold text-xs sm:text-sm transition"
+              className="py-3.5 px-4 rounded-2xl border-2 border-gray-200 bg-white hover:bg-gray-50 text-gray-700 font-bold text-sm transition active:scale-95 shadow-sm"
             >
               বাতিল
             </button>
             <button
               type="submit"
-              className="py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs sm:text-sm shadow-xs transition flex items-center justify-center gap-1.5"
+              className="py-3.5 px-4 rounded-2xl bg-red-600 hover:bg-red-700 active:scale-95 text-white font-black text-sm shadow-md transition flex items-center justify-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
-              <span>ডিলিট করুন</span>
+              <span>মুছে ফেলুন</span>
             </button>
           </div>
         </form>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, Camera, Edit2, Trash2, AlertTriangle, Package, ShoppingBasket, BookOpen, Monitor, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, AlertTriangle } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
-import { Product, MeasurementType, UnitType, MainCategory } from '../types';
+import { Product, MainCategory } from '../types';
 import { formatTaka, toBengaliNumber } from '../utils/bengali';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
 
@@ -9,11 +9,9 @@ interface ProductViewProps {
   onOpenScanner?: (onScan: (code: string) => void) => void;
 }
 
-export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
-  const { products, addProduct, updateProduct, deleteProduct } = useDokan();
+export const ProductView: React.FC<ProductViewProps> = () => {
+  const { products, deleteProduct, setActiveGlobalModal, setProductModalData } = useDokan();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -22,111 +20,14 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
   // Stock status filter (সব, কম স্টক, স্টক শেষ)
   const [stockTab, setStockTab] = useState<'all' | 'low' | 'out'>('all');
 
-  // Form states matching image_797ab7cc.png with 3-section support
-  const [name, setName] = useState('');
-  const [mainCategory, setMainCategory] = useState<MainCategory>('মুদি');
-  const [subCategory, setSubCategory] = useState('');
-  const [measurementType, setMeasurementType] = useState<MeasurementType>('weight');
-  const [unit, setUnit] = useState<UnitType>('কেজি');
-  const [purchasePrice, setPurchasePrice] = useState('');
-  const [sellingPrice, setSellingPrice] = useState('');
-  const [currentStock, setCurrentStock] = useState('');
-  const [lowStockAlert, setLowStockAlert] = useState('');
-  const [barcode, setBarcode] = useState('');
-  const [formError, setFormError] = useState('');
-
-  const handleMainCategoryChange = (cat: MainCategory) => {
-    setMainCategory(cat);
-    if (cat === 'মুদি') {
-      setMeasurementType('weight');
-      setUnit('কেজি');
-      setSubCategory('চাল/তেল/মুদি');
-    } else if (cat === 'স্টেশনারি') {
-      setMeasurementType('count');
-      setUnit('পিস');
-      setSubCategory('খাতা/কলম/কাগজ');
-    } else if (cat === 'কম্পিউটার সার্ভিস') {
-      setMeasurementType('service');
-      setUnit('পাতা');
-      setSubCategory('ফটোকপি/প্রিন্ট/ফরম');
-      if (currentStock === '' || currentStock === '0') {
-        setCurrentStock('999');
-      }
-    }
-  };
-
-  const openAddModal = (presetCategory?: MainCategory) => {
-    setEditingProductId(null);
-    const initialCategory: MainCategory = presetCategory || (selectedMainCategory !== 'সব' ? selectedMainCategory : 'মুদি');
-    setName('');
-    setPurchasePrice('');
-    setSellingPrice('');
-    setCurrentStock(initialCategory === 'কম্পিউটার সার্ভিস' ? '999' : '10');
-    setLowStockAlert('5');
-    setBarcode('');
-    setFormError('');
-    handleMainCategoryChange(initialCategory);
-    setIsModalOpen(true);
+  const openAddModal = () => {
+    setProductModalData({ id: null });
+    setActiveGlobalModal('product_form');
   };
 
   const openEditModal = (prod: Product) => {
-    setEditingProductId(prod.id);
-    setName(prod.name);
-    const cat = prod.mainCategory || 'মুদি';
-    setMainCategory(cat);
-    setSubCategory(prod.category);
-    setMeasurementType(prod.measurementType);
-    setUnit(prod.unit);
-    setPurchasePrice(prod.purchasePrice.toString());
-    setSellingPrice(prod.sellingPrice.toString());
-    setCurrentStock(prod.currentStock.toString());
-    setLowStockAlert(prod.lowStockAlert.toString());
-    setBarcode(prod.barcode || '');
-    setFormError('');
-    setIsModalOpen(true);
-  };
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) {
-      setFormError('পণ্যের নাম লিখুন');
-      return;
-    }
-
-    const pPrice = parseFloat(purchasePrice) || 0;
-    const sPrice = parseFloat(sellingPrice) || 0;
-    const stock = parseFloat(currentStock) || 0;
-    const lowStock = parseFloat(lowStockAlert) || 0;
-
-    if (editingProductId) {
-      updateProduct(editingProductId, {
-        name: name.trim(),
-        category: subCategory.trim() || mainCategory,
-        mainCategory,
-        measurementType,
-        unit,
-        purchasePrice: pPrice,
-        sellingPrice: sPrice,
-        currentStock: stock,
-        lowStockAlert: lowStock,
-        barcode: barcode.trim() || undefined,
-      });
-    } else {
-      addProduct({
-        name: name.trim(),
-        category: subCategory.trim() || mainCategory,
-        mainCategory,
-        measurementType,
-        unit,
-        purchasePrice: pPrice,
-        sellingPrice: sPrice,
-        currentStock: stock,
-        lowStockAlert: lowStock,
-        barcode: barcode.trim() || undefined,
-      });
-    }
-
-    setIsModalOpen(false);
+    setProductModalData({ id: prod.id });
+    setActiveGlobalModal('product_form');
   };
 
   // Counts for each category
@@ -168,7 +69,7 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
   }, [products, selectedMainCategory, stockTab, searchQuery]);
 
   return (
-    <div className="h-[calc(100dvh-7rem)] lg:h-auto flex flex-col space-y-2 pb-1 lg:pb-20 pt-1.5 sm:pt-3 overflow-hidden lg:overflow-visible">
+    <div className="h-[calc(100dvh-7rem)] lg:h-auto flex flex-col space-y-2 pb-1 lg:pb-20 pt-1.5 sm:pt-3 overflow-hidden lg:overflow-visible font-['SolaimanLipi',sans-serif]">
       {/* Top Header */}
       <div className="flex items-center justify-between gap-2 shrink-0">
         <div>
@@ -180,7 +81,7 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
           </h2>
         </div>
         <button
-          onClick={() => openAddModal()}
+          onClick={openAddModal}
           className="flex items-center gap-1 animate-gradient-terracotta hover:brightness-105 active:scale-95 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl shadow-xs transition shrink-0 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 stroke-[3]" />
@@ -188,7 +89,7 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
         </button>
       </div>
 
-      {/* 3 Main Product Sections Tabs (মুদি, স্টেশনারি, কম্পিউটার সার্ভিস) */}
+      {/* 3 Main Product Sections Tabs */}
       <div className="bg-white rounded-xl p-1 border border-gray-200 shadow-2xs shrink-0">
         <div className="grid grid-cols-4 gap-1">
           <button
@@ -270,7 +171,6 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
           )}
         </div>
 
-        {/* Stock status filter buttons */}
         <div className="flex gap-1 text-[11px] font-bold shrink-0">
           <button
             onClick={() => setStockTab('all')}
@@ -290,7 +190,7 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            কম স্টক
+            কম
           </button>
           <button
             onClick={() => setStockTab('out')}
@@ -305,7 +205,7 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
         </div>
       </div>
 
-      {/* Product List: Scrollable within Single Mobile Screen */}
+      {/* Product List */}
       <div className="flex-1 min-h-0 bg-white rounded-xl border border-gray-200 shadow-2xs divide-y divide-gray-100 overflow-y-auto">
         {filteredProducts.length > 0 ? (
           filteredProducts.map((prod) => {
@@ -347,7 +247,6 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                   </div>
                 </div>
 
-                {/* Stock Badge & Actions */}
                 <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                   <div className="text-right">
                     <div
@@ -372,7 +271,6 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
                     )}
                   </div>
 
-                  {/* Edit / Delete Buttons */}
                   <div className="flex items-center gap-0.5">
                     <button
                       onClick={() => openEditModal(prod)}
@@ -395,277 +293,11 @@ export const ProductView: React.FC<ProductViewProps> = ({ onOpenScanner }) => {
           })
         ) : (
           <div className="p-6 text-center text-gray-500 text-xs sm:text-sm">
-            এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি। উপরে "+ নতুন পণ্য" চাপ দিয়ে পণ্য যোগ করুন।
+            এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
           </div>
         )}
       </div>
 
-      {/* Compact Single-Screen Add/Edit Product Modal (z-[999] sits above EVERYTHING) */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm overflow-hidden">
-          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[92dvh] sm:h-auto sm:max-w-xl sm:max-h-[90dvh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300 ease-out">
-            {/* Header - Sticky */}
-            <div className="p-3.5 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
-                <span>{editingProductId ? 'পণ্য সম্পাদনা' : '+ নতুন পণ্য যোগ'}</span>
-                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-orange-100 text-[#b83a14]">
-                  {mainCategory}
-                </span>
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg bg-gray-50">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Scrollable Form Content */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 sm:p-8 space-y-5 pb-32">
-              {formError && (
-                <div className="mb-2 text-xs bg-red-50 text-red-600 p-2 rounded-lg border border-red-200 font-semibold">
-                  {formError}
-                </div>
-              )}
-
-              <form id="product-form" onSubmit={handleSave} className="space-y-4 text-xs sm:text-sm">
-                {/* 3 Prominent Section Buttons */}
-                <div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleMainCategoryChange('মুদি')}
-                      className={`py-2.5 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
-                        mainCategory === 'মুদি'
-                          ? 'bg-amber-500 text-white border-amber-600 font-bold shadow-2xs'
-                          : 'bg-gray-50 text-gray-700 border-gray-200'
-                      }`}
-                    >
-                      <ShoppingBasket className="w-4 h-4" />
-                      <span className="text-[10px] sm:text-xs">১. মুদি</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleMainCategoryChange('স্টেশনারি')}
-                      className={`py-2.5 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
-                        mainCategory === 'স্টেশনারি'
-                          ? 'bg-blue-600 text-white border-blue-700 font-bold shadow-2xs'
-                          : 'bg-gray-50 text-gray-700 border-gray-200'
-                      }`}
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      <span className="text-[10px] sm:text-xs">২. স্টেশনারি</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleMainCategoryChange('কম্পিউটার সার্ভিস')}
-                      className={`py-2.5 px-1 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
-                        mainCategory === 'কম্পিউটার সার্ভিস'
-                          ? 'bg-purple-600 text-white border-purple-700 font-bold shadow-2xs'
-                          : 'bg-gray-50 text-gray-700 border-gray-200'
-                      }`}
-                    >
-                      <Monitor className="w-4 h-4" />
-                      <span className="text-[10px] sm:text-xs truncate">৩. সার্ভিস</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Product Name & Sub-category */}
-                <div className="grid grid-cols-1 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      পণ্যের নাম <span className="text-[#b83a14]">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="যেমন: মিনিকেট চাল / বলপেন"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:border-[#b83a14] focus:bg-white transition-all text-sm font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      সাব-ক্যাটাগরি বা ট্যাগ
-                    </label>
-                    <input
-                      type="text"
-                      value={subCategory}
-                      onChange={(e) => setSubCategory(e.target.value)}
-                      placeholder="যেমন: চাল, তেল, খাতা"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] text-sm"
-                    />
-                  </div>
-                </div>
-
-                {/* Measurement Type & Unit */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      মাপের ধরন
-                    </label>
-                    <select
-                      value={measurementType}
-                      onChange={(e) => {
-                        const val = e.target.value as MeasurementType;
-                        setMeasurementType(val);
-                        if (val === 'weight') setUnit('কেজি');
-                        else if (val === 'liquid') setUnit('লিটার');
-                        else if (val === 'service') setUnit('কাজ');
-                        else setUnit('পিস');
-                      }}
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-xs"
-                    >
-                      <option value="weight">ওজন (কেজি/গ্রাম)</option>
-                      <option value="count">পিস/সংখ্যা/রিম</option>
-                      <option value="liquid">তরল (লিটার)</option>
-                      <option value="service">সার্ভিস/পাতা</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      একক
-                    </label>
-                    <select
-                      value={unit}
-                      onChange={(e) => setUnit(e.target.value as UnitType)}
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-xs"
-                    >
-                      <option value="কেজি">কেজি</option>
-                      <option value="গ্রাম">গ্রাম</option>
-                      <option value="পিস">পিস</option>
-                      <option value="ডজন">ডজন</option>
-                      <option value="রিম">রিম (কাগজ)</option>
-                      <option value="পাতা">পাতা (প্রিন্ট/ফটোকপি)</option>
-                      <option value="কাজ">কাজ / সার্ভিস</option>
-                      <option value="ঘণ্টা">ঘণ্টা</option>
-                      <option value="লিটার">লিটার</option>
-                      <option value="প্যাকেট">প্যাকেট</option>
-                      <option value="বস্তা">বস্তা</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* Buying Price & Selling Price */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      কেনা দাম (৳/{unit})
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={purchasePrice}
-                      onChange={(e) => setPurchasePrice(e.target.value)}
-                      placeholder="০"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-black text-[#b83a14]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      বিক্রির দাম (৳/{unit})
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={sellingPrice}
-                      onChange={(e) => setSellingPrice(e.target.value)}
-                      placeholder="০"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-600 font-black text-emerald-700"
-                    />
-                  </div>
-                </div>
-
-                {/* Starting Stock, Low Stock & Barcode */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      স্টক ({unit})
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={currentStock}
-                      onChange={(e) => setCurrentStock(e.target.value)}
-                      placeholder="০"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      সতর্কতা ({unit})
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={lowStockAlert}
-                      onChange={(e) => setLowStockAlert(e.target.value)}
-                      placeholder="৫"
-                      className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-bold text-amber-700"
-                    />
-                  </div>
-
-                  <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-[11px] font-bold text-gray-600 mb-1 uppercase tracking-wider">
-                      বারকোড
-                    </label>
-                    <div className="relative flex items-center">
-                      <input
-                        type="text"
-                        value={barcode}
-                        onChange={(e) => setBarcode(e.target.value)}
-                        placeholder="স্ক্যান করুন"
-                        className="w-full bg-[#fbfaf8] border-2 border-gray-200 rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:ring-2 focus:ring-[#b83a14] font-mono text-xs"
-                      />
-                      {onOpenScanner && (
-                        <button
-                          type="button"
-                          onClick={() => onOpenScanner((code) => setBarcode(code))}
-                          className="absolute right-2 p-1.5 text-gray-500 hover:text-[#b83a14] bg-white rounded-lg shadow-sm"
-                          title="ক্যামেরা স্ক্যান"
-                        >
-                          <Camera className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            {/* Modal Action Buttons - Sticky Footer with Safe Area Padding for Mobile */}
-            <div className="p-5 sm:p-6 border-t border-gray-100 bg-white/95 backdrop-blur-lg sticky bottom-0 z-20 shrink-0 pb-8 sm:pb-6">
-              <div className="max-w-md mx-auto grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="w-full py-3.5 bg-white hover:bg-gray-100 active:scale-[0.98] text-gray-700 border-2 border-gray-200 rounded-2xl font-bold text-sm transition shadow-sm cursor-pointer"
-                >
-                  বাতিল
-                </button>
-                <button
-                  type="submit"
-                  form="product-form"
-                  className="w-full py-3.5 animate-gradient-terracotta hover:brightness-110 active:scale-[0.98] text-white rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                  <span>পণ্য সংরক্ষণ করুন</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation with Security PIN 7078 */}
       <DeletePinConfirmModal
         isOpen={!!productToDelete}
         title="পণ্য মুছে ফেলা"
