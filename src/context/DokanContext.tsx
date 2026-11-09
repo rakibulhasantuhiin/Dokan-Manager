@@ -45,9 +45,11 @@ interface DokanContextType {
   customers: Customer[];
   addCustomer: (name: string, phone?: string, address?: string, initialDue?: number) => Customer;
   updateCustomer: (id: string, updates: Partial<Customer>) => void;
+  updateCustomerDue: (customerId: string, newDueAmount: number, note?: string) => void;
   deleteCustomer: (id: string) => void;
   transactions: CustomerTransaction[];
   addTransaction: (customerId: string, type: 'due' | 'payment', amount: number, note?: string) => void;
+  updateTransaction: (id: string, updates: { amount: number; note?: string; type?: 'due' | 'payment' }) => void;
   deleteTransaction: (id: string) => void;
   products: Product[];
   addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Product;
@@ -801,6 +803,80 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     triggerOptimizedCloudSync(true);
   };
 
+  const updateCustomerDue = (customerId: string, newDueAmount: number, note?: string) => {
+    const cleanDue = Math.max(0, Number(newDueAmount) || 0);
+    const now = new Date().toISOString();
+    const custTxs = stateRef.current.transactions.filter((t) => t.customerId === customerId);
+    const oldBalance = calculateCustomerBalance(custTxs);
+    const targetGiven = oldBalance.totalReceived + cleanDue;
+    const diff = targetGiven - oldBalance.totalGiven;
+
+    let nextTxs = [...stateRef.current.transactions];
+
+    if (diff > 0) {
+      const firstDueIdx = nextTxs.findIndex((t) => t.customerId === customerId && t.type === 'due');
+      if (firstDueIdx !== -1) {
+        const targetTx = nextTxs[firstDueIdx];
+        nextTxs[firstDueIdx] = {
+          ...targetTx,
+          amount: targetTx.amount + diff,
+          note: note?.trim() ? note.trim() : targetTx.note,
+        };
+      } else {
+        const newTx: CustomerTransaction = {
+          id: 'tx_' + Date.now() + Math.random().toString(36).substring(2, 6),
+          customerId,
+          type: 'due',
+          amount: diff,
+          date: now,
+          note: note?.trim() || 'বাকি এডিট / সমন্বয়',
+        };
+        nextTxs = [newTx, ...nextTxs];
+      }
+    } else if (diff < 0) {
+      let remainingToReduce = Math.abs(diff);
+      nextTxs = nextTxs
+        .map((t) => {
+          if (t.customerId === customerId && t.type === 'due' && remainingToReduce > 0) {
+            const deduct = Math.min(t.amount, remainingToReduce);
+            remainingToReduce -= deduct;
+            return {
+              ...t,
+              amount: t.amount - deduct,
+              note: note?.trim() ? note.trim() : t.note,
+            };
+          }
+          return t;
+        })
+        .filter((t) => !(t.customerId === customerId && t.type === 'due' && t.amount <= 0));
+    }
+
+    setTransactions(nextTxs);
+    stateRef.current.transactions = nextTxs;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
+
+    const updatedCustTxs = nextTxs.filter((t) => t.customerId === customerId);
+    const newBalance = calculateCustomerBalance(updatedCustTxs);
+
+    const nextCustomers = stateRef.current.customers.map((c) => {
+      if (c.id === customerId) {
+        return {
+          ...c,
+          totalGiven: newBalance.totalGiven,
+          totalReceived: newBalance.totalReceived,
+          currentDue: newBalance.currentDue,
+          lastTransactionDate: now,
+        };
+      }
+      return c;
+    });
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
+
+    triggerOptimizedCloudSync(true);
+  };
+
   const deleteCustomer = (id: string) => {
     const custTxs = stateRef.current.transactions.filter((t) => t.customerId === id);
     const custTxIds = new Set(custTxs.map((t) => t.id));
@@ -869,6 +945,78 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         description: `${customer?.name || 'কাস্টমার'} থেকে বাকি আদায়`,
         date: now,
         refId: txId,
+      });
+    }
+
+    triggerOptimizedCloudSync(true);
+  };
+
+  const updateTransaction = (
+    id: string,
+    updates: { amount: number; note?: string; type?: 'due' | 'payment' }
+  ) => {
+    const oldTx = stateRef.current.transactions.find((t) => t.id === id);
+    if (!oldTx) return;
+
+    const cleanAmount = Math.max(0, Number(updates.amount) || 0);
+    const updatedType = updates.type || oldTx.type;
+    const updatedTx: CustomerTransaction = {
+      ...oldTx,
+      type: updatedType,
+      amount: cleanAmount,
+      note: updates.note !== undefined ? updates.note : oldTx.note,
+    };
+
+    const nextTxs = stateRef.current.transactions.map((t) => (t.id === id ? updatedTx : t));
+    setTransactions(nextTxs);
+    stateRef.current.transactions = nextTxs;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(nextTxs)); } catch {}
+
+    const custTxs = nextTxs.filter((t) => t.customerId === oldTx.customerId);
+    const balance = calculateCustomerBalance(custTxs);
+
+    const nextCustomers = stateRef.current.customers.map((c) => {
+      if (c.id === oldTx.customerId) {
+        return {
+          ...c,
+          totalGiven: balance.totalGiven,
+          totalReceived: balance.totalReceived,
+          currentDue: balance.currentDue,
+        };
+      }
+      return c;
+    });
+    setCustomers(nextCustomers);
+    stateRef.current.customers = nextCustomers;
+    try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(nextCustomers)); } catch {}
+
+    // Sync corresponding cash entry if payment amount or type changed
+    if (oldTx.type === 'payment' && updatedType === 'payment') {
+      const nextCash = stateRef.current.cashEntries.map((c) => {
+        if (c.refId === id || (c.category === 'বাকি আদায়' && c.amount === oldTx.amount && c.date === oldTx.date)) {
+          return { ...c, amount: cleanAmount };
+        }
+        return c;
+      });
+      setCashEntries(nextCash);
+      stateRef.current.cashEntries = nextCash;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+    } else if (oldTx.type === 'payment' && updatedType === 'due') {
+      const nextCash = stateRef.current.cashEntries.filter(
+        (c) => c.refId !== id && !(c.category === 'বাকি আদায়' && c.amount === oldTx.amount && c.date === oldTx.date)
+      );
+      setCashEntries(nextCash);
+      stateRef.current.cashEntries = nextCash;
+      try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(nextCash)); } catch {}
+    } else if (oldTx.type === 'due' && updatedType === 'payment') {
+      const customer = nextCustomers.find((c) => c.id === oldTx.customerId);
+      addCashEntry({
+        type: 'in',
+        amount: cleanAmount,
+        category: 'বাকি আদায়',
+        description: `${customer?.name || 'কাস্টমার'} থেকে বাকি আদায়`,
+        date: oldTx.date,
+        refId: id,
       });
     }
 
@@ -1315,9 +1463,11 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         customers,
         addCustomer,
         updateCustomer,
+        updateCustomerDue,
         deleteCustomer,
         transactions,
         addTransaction,
+        updateTransaction,
         deleteTransaction,
         products,
         addProduct,

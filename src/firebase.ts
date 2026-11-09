@@ -53,17 +53,30 @@ setPersistence(auth, browserLocalPersistence).catch((err) => {
 export const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-
 export async function signInWithGoogle() {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
   } catch (error: any) {
     console.error('Google sign in popup error:', error);
+    // Fallback to redirect on PC popup blockage or iframe constraint
+    if (
+      error?.code === 'auth/popup-blocked' ||
+      error?.code === 'auth/cancelled-popup-request' ||
+      error?.code === 'auth/popup-closed-by-user' ||
+      error?.code === 'auth/operation-not-supported-in-this-environment'
+    ) {
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return null;
+      } catch (redirectErr) {
+        console.error('Google redirect sign in error:', redirectErr);
+        throw redirectErr;
+      }
+    }
     throw error;
   }
 }
-
 
 export async function checkRedirectAuth() {
   try {

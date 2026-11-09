@@ -6,6 +6,8 @@ import {
   ArrowRight,
   AlertCircle,
   ShieldCheck,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 
@@ -13,11 +15,52 @@ export const WelcomeAuthLanding: React.FC = () => {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail, updateSettings } = useDokan();
 
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [shopNameInput, setShopNameInput] = useState('');
+  const [email, setEmail] = useState('tawakkulcorners@gmail.com');
+  const [password, setPassword] = useState('@2828TanjuTuhin');
+  const [shopNameInput, setShopNameInput] = useState('তাওয়াক্কুল কর্নার');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Instant 1-Click Master Login handler with automatic sign-up fallback if account doesn't exist yet
+  const performSmartAuth = async (targetEmail: string, targetPass: string, shopTitle?: string) => {
+    const cleanEmail = targetEmail.trim().toLowerCase();
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      // 1. Try signing in
+      await signInWithEmail(cleanEmail, targetPass);
+    } catch (signInErr: any) {
+      console.warn('Sign-in failed, checking if automatic account creation is needed...', signInErr);
+      const code = signInErr?.code;
+
+      // 2. If user account does not exist or credentials not initialized, automatically create the account!
+      if (
+        code === 'auth/user-not-found' ||
+        code === 'auth/invalid-credential' ||
+        code === 'auth/wrong-password' ||
+        code === 'auth/invalid-email'
+      ) {
+        try {
+          await signUpWithEmail(cleanEmail, targetPass, shopTitle || 'তাওয়াক্কুল কর্নার');
+          updateSettings({ shopName: shopTitle || 'তাওয়াক্কুল কর্নার', ownerName: 'রাকিবুল হাসান তোহিন' });
+          return;
+        } catch (signUpErr: any) {
+          console.error('Auto sign-up error:', signUpErr);
+          if (signUpErr?.code === 'auth/email-already-in-use') {
+            setErrorMessage('পাসওয়ার্ডটি ভুল হয়েছে। অনুগ্রহ করে পাসওয়ার্ডটি সঠিক দিয়ে চেষ্টা করুন।');
+          } else {
+            setErrorMessage(signUpErr?.message || 'লগইন বা একাউন্ট তৈরি করা সম্ভব হয়নি।');
+          }
+          return;
+        }
+      }
+
+      setErrorMessage(signInErr?.message || 'লগইন সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -32,14 +75,14 @@ export const WelcomeAuthLanding: React.FC = () => {
         err?.code === 'auth/popup-closed-by-user'
       ) {
         setErrorMessage(
-          'পপ-আপ বন্ধ বা ব্লক হয়েছে। নিচের ইমেইল ও পাসওয়ার্ড ফর্ম দিয়ে সহজেই ১-ক্লিকে প্রবেশ করতে পারেন।'
+          'PC-তে পপ-আপ ব্লক হয়েছে। নিচের "তাওয়াক্কুল কর্নার ১-ক্লিক লগইন" বাটন চেপে সহজে প্রবেশ করুন।'
         );
       } else if (err?.code === 'auth/unauthorized-domain') {
         setErrorMessage(
-          'এই ডোমেনটি ফায়ারবেসে অনুমোদিত নয়। নিচের ইমেইল ও পাসওয়ার্ড দিয়ে সহজে লগইন করুন।'
+          'নিচের ১-ক্লিক বাটন বা ইমেইল-পাসওয়ার্ড দিয়ে সরাসরি সফটওয়্যারে প্রবেশ করুন।'
         );
       } else {
-        setErrorMessage(err?.message || 'লগইন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+        setErrorMessage(err?.message || 'লগইন করতে সমস্যা হয়েছে। ১-ক্লিক বাটন দিয়ে চেষ্টা করুন।');
       }
     } finally {
       setIsLoading(false);
@@ -61,40 +104,31 @@ export const WelcomeAuthLanding: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    try {
-      if (authMode === 'signup') {
+    if (authMode === 'signup') {
+      setIsLoading(true);
+      setErrorMessage(null);
+      try {
         await signUpWithEmail(email.trim(), password, shopNameInput.trim());
         updateSettings({ shopName: shopNameInput.trim() });
-      } else {
-        await signInWithEmail(email.trim(), password);
+      } catch (err: any) {
+        if (err?.code === 'auth/email-already-in-use') {
+          // Fallback to login if already exists
+          await performSmartAuth(email, password, shopNameInput);
+        } else {
+          setErrorMessage(err?.message || 'একাউন্ট তৈরি করা যায়নি');
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err: any) {
-      console.error('Email auth error:', err);
-      if (
-        err?.code === 'auth/user-not-found' ||
-        err?.code === 'auth/wrong-password' ||
-        err?.code === 'auth/invalid-credential'
-      ) {
-        setErrorMessage('ইমেইল বা পাসওয়ার্ড ভুল হয়েছে। সঠিক তথ্য দিন।');
-      } else if (err?.code === 'auth/email-already-in-use') {
-        setErrorMessage('এই ইমেইল দিয়ে ইতিমধ্যে একাউন্ট আছে। "লগইন" ট্যাবে যান।');
-      } else if (err?.code === 'auth/invalid-email') {
-        setErrorMessage('সঠিক ইমেইল ঠিকানা দিন (যেমন: yourname@gmail.com)');
-      } else {
-        setErrorMessage(err?.message || 'লগইন সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।');
-      }
-    } finally {
-      setIsLoading(false);
+    } else {
+      await performSmartAuth(email, password, shopNameInput);
     }
   };
 
   return (
     <div className="min-h-screen bg-[#f8f7f4] font-['SolaimanLipi',sans-serif] flex flex-col items-center justify-center p-4 text-gray-900 selection:bg-[#b83a14] selection:text-white">
       {/* Centered Minimal Auth Card */}
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-xl space-y-6">
+      <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-xl space-y-5">
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-[#b83a14] text-white flex items-center justify-center mx-auto text-2xl font-black shadow-md">
@@ -108,13 +142,24 @@ export const WelcomeAuthLanding: React.FC = () => {
           </p>
         </div>
 
-        {/* Error Message */}
+        {/* Error Message Alert */}
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800 leading-relaxed animate-shake">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
             <div>{errorMessage}</div>
           </div>
         )}
+
+        {/* Instant 1-Click Master Account Button for Tawakkul Corner */}
+        <button
+          type="button"
+          onClick={() => performSmartAuth('tawakkulcorners@gmail.com', '@2828TanjuTuhin', 'তাওয়াক্কুল কর্নার')}
+          disabled={isLoading}
+          className="w-full py-3.5 px-4 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-2xl font-extrabold text-sm sm:text-base shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+        >
+          <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
+          <span>তাওয়াক্কুল কর্নার ১-ক্লিক প্রবেশ</span>
+        </button>
 
         {/* Google One-Click Login */}
         <button
@@ -153,7 +198,7 @@ export const WelcomeAuthLanding: React.FC = () => {
         </div>
 
         {/* Email/Password Auth Form */}
-        <form onSubmit={handleEmailAuthSubmit} className="space-y-4">
+        <form onSubmit={handleEmailAuthSubmit} className="space-y-3.5">
           {/* Tab Selector */}
           <div className="flex bg-gray-100 p-1 rounded-xl">
             <button
@@ -198,8 +243,8 @@ export const WelcomeAuthLanding: React.FC = () => {
                   required
                   value={shopNameInput}
                   onChange={(e) => setShopNameInput(e.target.value)}
-                  placeholder="যেমন: বিসমিল্লাহ স্টোর"
-                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                  placeholder="যেমন: তাওয়াক্কুল কর্নার"
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
                 />
               </div>
             </div>
@@ -216,8 +261,8 @@ export const WelcomeAuthLanding: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="yourname@gmail.com"
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                placeholder="tawakkulcorners@gmail.com"
+                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white font-medium"
               />
             </div>
           </div>
@@ -233,8 +278,8 @@ export const WelcomeAuthLanding: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="কমপক্ষে ৬ ডিজিটের পাসওয়ার্ড"
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                placeholder="@2828TanjuTuhin"
+                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl pl-9 pr-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white font-medium"
               />
             </div>
           </div>
@@ -242,7 +287,7 @@ export const WelcomeAuthLanding: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-2xl font-bold text-sm sm:text-base shadow-xs transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+            className="w-full py-3 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-2xl font-bold text-sm sm:text-base shadow-xs transition flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
           >
             {isLoading ? (
               <span>প্রসেসিং হচ্ছে...</span>

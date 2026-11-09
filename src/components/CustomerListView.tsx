@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Search, User, Phone, MapPin, ChevronRight, QrCode } from 'lucide-react';
+import { Plus, Search, User, Phone, MapPin, ChevronRight, QrCode, Edit2, X } from 'lucide-react';
 import { useDokan } from '../context/DokanContext';
 import { Customer } from '../types';
 import { formatTaka, toBengaliNumber } from '../utils/bengali';
@@ -10,12 +10,19 @@ interface CustomerListViewProps {
 }
 
 export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCustomer }) => {
-  const { customers, addCustomer, transactions, settings } = useDokan();
+  const { customers, addCustomer, updateCustomer, updateCustomerDue, transactions, settings } = useDokan();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState<'due' | 'all' | 'nodue'>('due');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [shareCustomer, setShareCustomer] = useState<Customer | null>(null);
+
+  // Quick Edit Customer & Due state
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editCustName, setEditCustName] = useState('');
+  const [editCustPhone, setEditCustPhone] = useState('');
+  const [editCustAddress, setEditCustAddress] = useState('');
+  const [editCustDue, setEditCustDue] = useState('');
 
   // New Customer Form states
   const [name, setName] = useState('');
@@ -23,6 +30,29 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
   const [address, setAddress] = useState('');
   const [initialDue, setInitialDue] = useState('');
   const [error, setError] = useState('');
+
+  const openEditCustomerModal = (cust: Customer) => {
+    setEditingCustomer(cust);
+    setEditCustName(cust.name);
+    setEditCustPhone(cust.phone || '');
+    setEditCustAddress(cust.address || '');
+    setEditCustDue(String(cust.currentDue));
+  };
+
+  const handleEditCustomerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer || !editCustName.trim()) return;
+    const newDueVal = Math.max(0, parseFloat(editCustDue) || 0);
+    updateCustomer(editingCustomer.id, {
+      name: editCustName.trim(),
+      phone: editCustPhone.trim() || undefined,
+      address: editCustAddress.trim() || undefined,
+    });
+    if (newDueVal !== editingCustomer.currentDue) {
+      updateCustomerDue(editingCustomer.id, newDueVal, 'বাকি এডিট');
+    }
+    setEditingCustomer(null);
+  };
 
   const handleAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,6 +230,17 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
+                    openEditCustomerModal(cust);
+                  }}
+                  title="বাকি টাকা এডিট করুন"
+                  className="p-1.5 text-gray-500 hover:text-[#b83a14] hover:bg-orange-100/70 rounded-lg transition"
+                >
+                  <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setShareCustomer(cust);
                   }}
                   title="বাকি খাতার QR কোড ও লিঙ্ক"
@@ -314,6 +355,104 @@ export const CustomerListView: React.FC<CustomerListViewProps> = ({ onSelectCust
                   className="w-full py-2.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
                 >
                   কাস্টমার সংরক্ষণ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Edit Customer Due & Info Modal */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-3 bg-black/65 backdrop-blur-xs">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-md p-4 sm:p-5 shadow-2xl max-h-[92dvh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                বাকি টাকা ও কাস্টমার এডিট করুন
+              </h3>
+              <button
+                onClick={() => setEditingCustomer(null)}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditCustomerSubmit} className="space-y-2.5 text-xs sm:text-sm">
+              <div className="p-3 bg-orange-50/80 border border-orange-200 rounded-xl">
+                <label className="block text-xs font-extrabold text-[#b83a14] mb-1">
+                  বর্তমান মোট বাকি টাকা (৳) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  required
+                  autoFocus
+                  value={editCustDue}
+                  onChange={(e) => setEditCustDue(e.target.value)}
+                  placeholder="০"
+                  className="w-full bg-white border-2 border-[#b83a14]/50 rounded-xl px-3.5 py-2 text-base sm:text-lg font-extrabold text-[#b83a14] focus:outline-none focus:ring-2 focus:ring-[#b83a14]"
+                />
+                <div className="text-[11px] text-gray-500 mt-1">
+                  আগের বাকি ছিল: <strong>{formatTaka(editingCustomer.currentDue)}</strong>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  কাস্টমারের নাম <span className="text-[#b83a14]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editCustName}
+                  onChange={(e) => setEditCustName(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    মোবাইল নম্বর
+                  </label>
+                  <input
+                    type="tel"
+                    value={editCustPhone}
+                    onChange={(e) => setEditCustPhone(e.target.value)}
+                    placeholder="01700000000"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    ঠিকানা
+                  </label>
+                  <input
+                    type="text"
+                    value={editCustAddress}
+                    onChange={(e) => setEditCustAddress(e.target.value)}
+                    placeholder="গ্রাম / এলাকা"
+                    className="w-full bg-[#fbfaf8] border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#b83a14] focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingCustomer(null)}
+                  className="w-full py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 rounded-xl font-bold text-xs sm:text-sm transition"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-[#b83a14] hover:bg-[#a33210] text-white rounded-xl font-bold text-xs sm:text-sm shadow-xs transition"
+                >
+                  পরিবর্তন সংরক্ষণ
                 </button>
               </div>
             </form>
