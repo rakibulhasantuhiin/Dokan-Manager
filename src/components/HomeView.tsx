@@ -23,6 +23,7 @@ import { calculateDashboardMetrics } from '../utils/calculations';
 import { formatTaka, toBengaliNumber, formatBengaliDateTime } from '../utils/bengali';
 import { Customer } from '../types';
 import { CashBalanceAuditModal } from './CashBalanceAuditModal';
+import { DailyMetricsDetailModal } from './DailyMetricsDetailModal';
 
 interface HomeViewProps {
   onGoToSale: () => void;
@@ -45,6 +46,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const [isCompHistoryOpen, setIsCompHistoryOpen] = useState(false);
   const [isBalanceAuditOpen, setIsBalanceAuditOpen] = useState(false);
+  const [metricsDetail, setMetricsDetail] = useState<{ isOpen: boolean; type: 'sales' | 'due' | 'received' | 'profit' }>({
+    isOpen: false,
+    type: 'sales',
+  });
 
   // Aggregated financials (with strict midnight-to-midnight boundary)
   const metrics = calculateDashboardMetrics(customers, transactions, sales, products, cashEntries);
@@ -239,7 +244,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {/* Today's Sales */}
-          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-amber border border-orange-200/70">
+          <div
+            onClick={() => setMetricsDetail({ isOpen: true, type: 'sales' })}
+            className="p-2 sm:p-2.5 rounded-xl animate-soft-amber border border-orange-200/70 cursor-pointer hover:bg-orange-50 active:scale-95 transition"
+          >
             <div className="text-[11px] text-gray-600 font-semibold flex items-center justify-between">
               <span>আজকের বিক্রি</span>
               <span className="text-[10px] text-gray-400">({toBengaliNumber(metrics.todaySalesCount)}টি)</span>
@@ -250,7 +258,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Due Given */}
-          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-red border border-red-200/70">
+          <div
+            onClick={() => setMetricsDetail({ isOpen: true, type: 'due' })}
+            className="p-2 sm:p-2.5 rounded-xl animate-soft-red border border-red-200/70 cursor-pointer hover:bg-red-50 active:scale-95 transition"
+          >
             <div className="text-[11px] text-gray-600 font-semibold">আজ বাকি দিয়েছি</div>
             <div className="text-base sm:text-xl font-bold text-red-600 mt-0.5">
               {formatTaka(metrics.todayDueGiven)}
@@ -258,7 +269,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Cash Collection */}
-          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-emerald border border-emerald-200/70">
+          <div
+            onClick={() => setMetricsDetail({ isOpen: true, type: 'received' })}
+            className="p-2 sm:p-2.5 rounded-xl animate-soft-emerald border border-emerald-200/70 cursor-pointer hover:bg-emerald-50 active:scale-95 transition"
+          >
             <div className="text-[11px] text-gray-600 font-semibold">আজ নগদ আদায়</div>
             <div className="text-base sm:text-xl font-bold text-emerald-600 mt-0.5">
               {formatTaka(metrics.todayMoneyReceived)}
@@ -266,7 +280,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
 
           {/* Today's Profit */}
-          <div className="p-2 sm:p-2.5 rounded-xl animate-soft-blue border border-blue-200/70">
+          <div
+            onClick={() => setMetricsDetail({ isOpen: true, type: 'profit' })}
+            className="p-2 sm:p-2.5 rounded-xl animate-soft-blue border border-blue-200/70 cursor-pointer hover:bg-blue-50 active:scale-95 transition"
+          >
             <div className="text-[11px] text-gray-600 font-semibold">আজকের মোট লাভ</div>
             <div className="text-base sm:text-xl font-bold text-blue-700 mt-0.5">
               {formatTaka(metrics.todayProfit)}
@@ -509,6 +526,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
       <CashBalanceAuditModal
         isOpen={isBalanceAuditOpen}
         onClose={() => setIsBalanceAuditOpen(false)}
+      />
+
+      {/* Daily Metrics Detail Modal */}
+      <DailyMetricsDetailModal
+        isOpen={metricsDetail.isOpen}
+        type={metricsDetail.type}
+        onClose={() => setMetricsDetail({ ...metricsDetail, isOpen: false })}
       />
     </div>
   );

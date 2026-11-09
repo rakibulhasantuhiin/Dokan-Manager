@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Customer } from '../types';
 import { useDokan } from '../context/DokanContext';
-import { formatTaka, formatBengaliDate, toBengaliNumber } from '../utils/bengali';
+import { formatTaka, formatBengaliDate, toBengaliNumber, formatBengaliDateTime } from '../utils/bengali';
 import { DeletePinConfirmModal } from './DeletePinConfirmModal';
 import { CustomerLedgerShareModal } from './CustomerLedgerShareModal';
 
@@ -362,7 +362,7 @@ export const CustomerDetailView: React.FC<CustomerDetailViewProps> = ({
               >
                 <div className="min-w-0">
                   <div className="text-[11px] text-gray-500 font-medium">
-                    {formatBengaliDate(tx.date)}
+                    {formatBengaliDateTime(tx.date)}
                   </div>
                   <div className="font-bold text-gray-800 text-xs sm:text-sm mt-0.5 truncate">
                     {tx.type === 'due' ? 'বাকি' : 'জমা / টাকা পেয়েছি'}

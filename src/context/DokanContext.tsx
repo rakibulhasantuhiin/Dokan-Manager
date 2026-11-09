@@ -1218,7 +1218,8 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(nextProducts)); } catch {}
 
     if (saleData.dueAmount > 0 && saleData.customerId) {
-      addTransaction(saleData.customerId, 'due', saleData.dueAmount, `বিক্রির বাকি (মেমো #${memoNo})`);
+      const productNames = saleData.items.map((i) => i.product.name).join(', ');
+      addTransaction(saleData.customerId, 'due', saleData.dueAmount, `${productNames} (মেমো #${memoNo})`);
     }
 
     if (saleData.paidAmount > 0) {
