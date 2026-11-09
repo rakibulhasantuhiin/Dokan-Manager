@@ -31,9 +31,6 @@ export const DailyMetricsDetailModal: React.FC<DailyMetricsDetailModalProps> = (
   const { sales, transactions, customers, deleteSale, deleteTransaction, updateTransaction, settings } = useDokan();
   const [itemToDelete, setItemToDelete] = React.useState<{ id: string; type: 'sale' | 'tx' } | null>(null);
   const [itemToEdit, setItemToEdit] = React.useState<{ id: string; amount: string; note: string; type: 'tx' } | null>(null);
-
-  if (!isOpen) return null;
-
   const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
 
   if (!isOpen) return null;

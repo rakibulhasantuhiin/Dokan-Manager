@@ -28,6 +28,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
     resetAllData,
     currentUser,
     logOut,
+    syncNow,
+    isCloudSyncing,
   } = useDokan();
 
   const { install, isInstalled, isIOS } = usePWAInstall();
@@ -227,6 +229,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ onClose }) => {
             দোকানের তথ্য সংরক্ষণ করুন
           </button>
         </form>
+
+        {/* 3. Manual Cloud Sync Button */}
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-bold text-gray-800 text-xs uppercase tracking-wider">ক্লাউড সিনক্রোনাইজেশন</h4>
+            {isCloudSyncing && <span className="text-[10px] text-emerald-600 font-bold animate-pulse">সিনক্রোনাইজ হচ্ছে...</span>}
+          </div>
+          <button
+            type="button"
+            onClick={() => syncNow()}
+            disabled={isCloudSyncing}
+            className="w-full py-3.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-2 border-emerald-200 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition active:scale-95 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 ${isCloudSyncing ? 'animate-spin' : ''}`} />
+            <span>সরাসরি ক্লাউড থেকে হিসাব আপডেট করুন (Manual Sync)</span>
+          </button>
+          <p className="text-[10px] text-gray-500 mt-2 text-center leading-relaxed">
+            যদি অন্য কোনো ডিভাইসে (যেমন কম্পিউটার বা অন্য মোবাইল) করা পরিবর্তন এখানে সাথে সাথে না দেখায়, তবে এই বাটনে চাপ দিন।
+          </p>
+        </div>
 
         <div className="mt-6 pt-4 border-t border-gray-200">
             {currentUser && (

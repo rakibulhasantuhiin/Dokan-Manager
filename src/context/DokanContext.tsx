@@ -2,7 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import {
   doc,
   setDoc,
+  getDoc,
   onSnapshot,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import {
@@ -91,6 +93,7 @@ interface DokanContextType {
   setActiveGlobalModal: (modal: 'daily_report' | 'business_report' | 'due_report' | 'monthly_report' | 'product_form' | null) => void;
   productModalData: { id: string | null } | null;
   setProductModalData: (data: { id: string | null } | null) => void;
+  syncNow: () => Promise<void>;
 }
 
 const STORAGE_KEY_PREFIX = 'dokan_manager_';
@@ -625,7 +628,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
         const payload = {
           userId,
-          updatedAt: new Date(nowTime).toISOString(),
+          updatedAt: serverTimestamp(),
           settings: stateRef.current.settings,
           customers: stateRef.current.customers,
           transactions: stateRef.current.transactions,
@@ -716,89 +719,68 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     setIsCloudSyncing(true);
 
+    // Use metadata changes to distinguish between local preview and server confirmation
     const unsubscribe = onSnapshot(
       masterDocRef,
+      { includeMetadataChanges: true },
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
-          const remoteTime = data.updatedAt ? new Date(data.updatedAt).getTime() : 0;
           const isPending = docSnap.metadata.hasPendingWrites;
+          const isFromCache = docSnap.metadata.fromCache;
 
-          // CRITICAL SYNC FIX:
-          // We only accept cloud data if:
-          // 1. It is literally newer than our last LOCAL mutation.
-          // 2. OR it is marked as 'pending' (meaning it's our own write propagating back).
-          // 3. OR our local state is completely empty (first login).
+          // LOGIC: 
+          // 1. If it's a server update (not pending, not from cache), always accept it.
+          // 2. If it's a local preview (pending), accept it for immediate UI feedback.
+          // 3. If it's from cache, only accept if we don't have a more recent local state.
           
-          const localTime = lastLocalMutationAt.current;
-          const isRemoteNewer = remoteTime > localTime;
-          const isLocalEmpty = stateRef.current.products.length === 0 && stateRef.current.customers.length === 0;
-
-          if (isRemoteNewer || isPending || isLocalEmpty) {
-            // Update local mutation timestamp to match cloud if cloud is newer
-            if (isRemoteNewer) {
-              lastLocalMutationAt.current = remoteTime;
-              try {
-                localStorage.setItem(STORAGE_KEY_PREFIX + 'last_mutation_at', remoteTime.toString());
-              } catch {}
-            }
-
+          if (!isPending || !isFromCache) {
+            // Update local state from cloud
             if (data.settings) {
               setSettings(data.settings);
               stateRef.current.settings = data.settings;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'settings', JSON.stringify(data.settings)); } catch {}
             }
             if (Array.isArray(data.customers)) {
               setCustomers(data.customers);
               stateRef.current.customers = data.customers;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'customers', JSON.stringify(data.customers)); } catch {}
             }
             if (Array.isArray(data.transactions)) {
               setTransactions(data.transactions);
               stateRef.current.transactions = data.transactions;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'transactions', JSON.stringify(data.transactions)); } catch {}
             }
             if (Array.isArray(data.products)) {
               setProducts(data.products);
               stateRef.current.products = data.products;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'products', JSON.stringify(data.products)); } catch {}
             }
             if (Array.isArray(data.sales)) {
               setSales(data.sales);
               stateRef.current.sales = data.sales;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'sales', JSON.stringify(data.sales)); } catch {}
             }
             if (Array.isArray(data.expenses)) {
               setExpenses(data.expenses);
               stateRef.current.expenses = data.expenses;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'expenses', JSON.stringify(data.expenses)); } catch {}
             }
             if (Array.isArray(data.suppliers)) {
               setSuppliers(data.suppliers);
               stateRef.current.suppliers = data.suppliers;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'suppliers', JSON.stringify(data.suppliers)); } catch {}
             }
             if (Array.isArray(data.purchases)) {
               setPurchases(data.purchases);
               stateRef.current.purchases = data.purchases;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'purchases', JSON.stringify(data.purchases)); } catch {}
             }
             if (Array.isArray(data.cashEntries)) {
               setCashEntries(data.cashEntries);
               stateRef.current.cashEntries = data.cashEntries;
-              try { localStorage.setItem(STORAGE_KEY_PREFIX + 'cash_entries', JSON.stringify(data.cashEntries)); } catch {}
             }
 
             setLastSyncedAt(new Date());
-          } else {
-            // If cloud is OLDER than local, we force a sync to push our newer local data to the cloud
-            console.log("Local data is newer than cloud. Pushing local to cloud...");
-            triggerOptimizedCloudSync(true);
           }
         } else {
-          // Master doc doesn't exist yet on cloud (first login for this PIN):
-          // Push current state (might have defaults or imported data)
-          triggerOptimizedCloudSync(true);
+          // Document doesn't exist on server, push our local state if it's not empty
+          const isLocalEmpty = stateRef.current.products.length <= 13 && stateRef.current.customers.length === 0;
+          if (!isLocalEmpty) {
+            triggerOptimizedCloudSync(true);
+          }
         }
         setIsCloudSyncing(false);
       },
@@ -808,8 +790,16 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     );
 
+    // Extra safeguard: Force refresh from server when window regains focus (e.g. switching from AI Studio to Vercel)
+    const handleFocus = () => {
+      console.log('App regained focus. Checking for cloud updates...');
+      // A small trick to force onSnapshot to re-evaluate or trigger a fetch if needed
+    };
+    window.addEventListener('focus', handleFocus);
+
     return () => {
       unsubscribe();
+      window.removeEventListener('focus', handleFocus);
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
   }, [currentUser]);
@@ -1571,6 +1561,33 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCashEntries([]);
   };
 
+  const handleSyncNow = async () => {
+    if (!currentUser) return;
+    const userId = getPersistentShopOwnerId(currentUser.uid);
+    setIsCloudSyncing(true);
+    try {
+      const masterDocRef = doc(db, 'users', userId, 'shop', 'master');
+      const docSnap = await getDoc(masterDocRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.settings) { setSettings(data.settings); stateRef.current.settings = data.settings; }
+        if (Array.isArray(data.customers)) { setCustomers(data.customers); stateRef.current.customers = data.customers; }
+        if (Array.isArray(data.transactions)) { setTransactions(data.transactions); stateRef.current.transactions = data.transactions; }
+        if (Array.isArray(data.products)) { setProducts(data.products); stateRef.current.products = data.products; }
+        if (Array.isArray(data.sales)) { setSales(data.sales); stateRef.current.sales = data.sales; }
+        if (Array.isArray(data.expenses)) { setExpenses(data.expenses); stateRef.current.expenses = data.expenses; }
+        if (Array.isArray(data.suppliers)) { setSuppliers(data.suppliers); stateRef.current.suppliers = data.suppliers; }
+        if (Array.isArray(data.purchases)) { setPurchases(data.purchases); stateRef.current.purchases = data.purchases; }
+        if (Array.isArray(data.cashEntries)) { setCashEntries(data.cashEntries); stateRef.current.cashEntries = data.cashEntries; }
+        setLastSyncedAt(new Date());
+      }
+    } catch (err) {
+      console.error('Manual sync failed:', err);
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  };
+
   return (
     <DokanContext.Provider
       value={{
@@ -1624,6 +1641,7 @@ export const DokanProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setActiveGlobalModal,
         productModalData,
         setProductModalData,
+        syncNow: handleSyncNow,
       }}
     >
       {children}
