@@ -72,7 +72,7 @@ export const DailyBusinessReportModal: React.FC<DailyBusinessReportModalProps> =
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 print:p-0 print:bg-white print:relative print:z-0 overflow-hidden">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4 print:p-0 print:bg-white print:relative print:z-0 overflow-hidden animate-in fade-in duration-300">
       <div className="bg-white rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-4xl sm:max-h-[95vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 print:shadow-none print:max-h-none print:rounded-none">
         {/* Header - Hidden in print */}
         <div className="p-3 sm:p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 sticky top-0 z-10 print:hidden shrink-0">

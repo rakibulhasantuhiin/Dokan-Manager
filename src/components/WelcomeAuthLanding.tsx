@@ -60,26 +60,27 @@ export const WelcomeAuthLanding: React.FC = () => {
       return;
     }
 
-    // 2. Check local custom PIN registry first for instant login
-    const customPins = getCustomPins();
-    if (customPins[cleanPin]) {
-      activateFallbackPinSession(cleanPin, customPins[cleanPin].shopName || 'আমার দোকান');
-      return;
-    }
-
-    // 3. Check Cloud Firestore PIN registry (for logging in from a new device / Vercel / mobile)
     setIsLoading(true);
     try {
+      // 2. Check local custom PIN registry first for instant offline login
+      const customPins = getCustomPins();
+      if (customPins[cleanPin]) {
+        activateFallbackPinSession(cleanPin, customPins[cleanPin].shopName || 'আমার দোকান');
+        return;
+      }
+
+      // 3. Check Cloud Firestore PIN registry (for logging in from a new device / Vercel / mobile)
       const cloudCheck = await verifyPinInCloud(cleanPin);
       if (cloudCheck.exists) {
         const resolvedShop = cloudCheck.shopName || 'আমার দোকান';
         saveCustomPin(cleanPin, resolvedShop);
         activateFallbackPinSession(cleanPin, resolvedShop);
       } else {
-        setErrorMessage('এই পিন কোডটি নিবন্ধিত নয়। "+ নতুন পিন তৈরি" ট্যাবে গিয়ে দোকানের নাম ও নতুন পিন দিয়ে অ্যাকাউন্ট খুলুন।');
+        setErrorMessage('পিন অথেন্টিকেশন সমস্যা হয়েছে। দয়া করে সঠিক পিন দিন অথবা নতুন পিন তৈরি করুন।');
       }
-    } catch {
-      setErrorMessage('এই পিন কোডটি নিবন্ধিত নয়। "+ নতুন পিন তৈরি" ট্যাবে গিয়ে নতুন পিন তৈরি করুন।');
+    } catch (err) {
+      console.error('Auth error:', err);
+      setErrorMessage('পিন অথেন্টিকেশন সমস্যা হয়েছে। দয়া করে ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।');
     } finally {
       setIsLoading(false);
     }
@@ -183,8 +184,8 @@ export const WelcomeAuthLanding: React.FC = () => {
 
         {/* Error / Success Messages */}
         {errorMessage && (
-          <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800 leading-relaxed">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+          <div className="p-3 bg-red-50 border-2 border-red-200 rounded-2xl flex items-start gap-2.5 text-xs text-red-900 font-bold leading-tight animate-in fade-in zoom-in-95 duration-200">
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
             <div>{errorMessage}</div>
           </div>
         )}

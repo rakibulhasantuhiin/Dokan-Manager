@@ -195,99 +195,104 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 1: মাল কেনা (Purchases) */}
       {activeModal === 'purchase' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base">📄 মাল কেনার হিসাব</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <span className="p-2 bg-orange-100 rounded-lg text-[#b83a14]">📄</span>
+                <span>মাল কেনার হিসাব</span>
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!purItems || !purAmount) return;
-                addPurchase({
-                  supplierName: purSupplier.trim() || 'সাধারণ সরবরাহকারী',
-                  itemsSummary: purItems.trim(),
-                  amount: parseFloat(purAmount) || 0,
-                  paidAmount: parseFloat(purPaid) || 0,
-                  date: new Date().toISOString(),
-                });
-                setPurSupplier('');
-                setPurItems('');
-                setPurAmount('');
-                setPurPaid('');
-              }}
-              className="mt-3 space-y-2.5 text-xs sm:text-sm"
-            >
-              <input
-                type="text"
-                placeholder="সাপ্লায়ারের নাম বা কোম্পানি"
-                value={purSupplier}
-                onChange={(e) => setPurSupplier(e.target.value)}
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-              />
-              <input
-                type="text"
-                required
-                placeholder="পণ্যের বিবরণ (যেমন: ৫ বস্তা চাল, ২ কার্টন তেল)"
-                value={purItems}
-                onChange={(e) => setPurItems(e.target.value)}
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  required
-                  placeholder="মোট কেনা দাম (৳)"
-                  value={purAmount}
-                  onChange={(e) => setPurAmount(e.target.value)}
-                  className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-                />
-                <input
-                  type="number"
-                  placeholder="নগদ পরিশোধ (৳)"
-                  value={purPaid}
-                  onChange={(e) => setPurPaid(e.target.value)}
-                  className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-[#b83a14] text-white rounded-lg font-bold text-sm"
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 pb-32">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!purItems || !purAmount) return;
+                  addPurchase({
+                    supplierName: purSupplier.trim() || 'সাধারণ সরবরাহকারী',
+                    itemsSummary: purItems.trim(),
+                    amount: parseFloat(purAmount) || 0,
+                    paidAmount: parseFloat(purPaid) || 0,
+                    date: new Date().toISOString(),
+                  });
+                  setPurSupplier('');
+                  setPurItems('');
+                  setPurAmount('');
+                  setPurPaid('');
+                }}
+                className="mt-3 space-y-2.5 text-xs sm:text-sm"
               >
-                মাল কেনার হিসাব যোগ করুন
-              </button>
-            </form>
+                <input
+                  type="text"
+                  placeholder="সাপ্লায়ারের নাম বা কোম্পানি"
+                  value={purSupplier}
+                  onChange={(e) => setPurSupplier(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                />
+                <input
+                  type="text"
+                  required
+                  placeholder="পণ্যের বিবরণ (যেমন: ৫ বস্তা চাল, ২ কার্টন তেল)"
+                  value={purItems}
+                  onChange={(e) => setPurItems(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    required
+                    placeholder="মোট কেনা দাম (৳)"
+                    value={purAmount}
+                    onChange={(e) => setPurAmount(e.target.value)}
+                    className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                  />
+                  <input
+                    type="number"
+                    placeholder="নগদ পরিশোধ (৳)"
+                    value={purPaid}
+                    onChange={(e) => setPurPaid(e.target.value)}
+                    className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full py-3.5 animate-gradient-terracotta text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition"
+                >
+                  মাল কেনার হিসাব যোগ করুন
+                </button>
+              </form>
 
-            <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100 max-h-48 overflow-y-auto">
-              <div className="text-xs font-bold text-gray-500 mb-1">পূর্বের কেনাকাটা:</div>
-              {purchases.length > 0 ? (
-                purchases.map((p) => (
-                  <div key={p.id} className="py-2 text-xs flex justify-between items-center">
-                    <div>
-                      <div className="font-semibold text-gray-800">{p.itemsSummary}</div>
-                      <div className="text-gray-500">{p.supplierName} • {formatBengaliDate(p.date)}</div>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="text-right font-bold text-gray-800">
-                        {formatTaka(p.amount)}
+              <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                <div className="text-xs font-bold text-gray-500 mb-1">পূর্বের কেনাকাটা:</div>
+                {purchases.length > 0 ? (
+                  purchases.map((p) => (
+                    <div key={p.id} className="py-2 text-xs flex justify-between items-center">
+                      <div>
+                        <div className="font-semibold text-gray-800">{p.itemsSummary}</div>
+                        <div className="text-gray-500">{p.supplierName} • {formatBengaliDate(p.date)}</div>
                       </div>
-                      <button
-                        onClick={() => setPurchaseToDelete({ id: p.id, itemsSummary: p.itemsSummary, amount: p.amount })}
-                        className="text-gray-400 hover:text-red-600 p-1 transition"
-                        title="কেনাকাটার হিসাব ডিলিট"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-2.5">
+                        <div className="text-right font-bold text-gray-800">
+                          {formatTaka(p.amount)}
+                        </div>
+                        <button
+                          onClick={() => setPurchaseToDelete({ id: p.id, itemsSummary: p.itemsSummary, amount: p.amount })}
+                          className="text-gray-400 hover:text-red-600 p-1 transition"
+                          title="কেনাকাটার হিসাব ডিলিট"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-gray-400 py-3 text-center">কোনো কেনাকাটা লেখা হয়নি।</div>
-              )}
+                  ))
+                ) : (
+                  <div className="text-xs text-gray-400 py-3 text-center">কোনো কেনাকাটা লেখা হয়নি।</div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -295,75 +300,80 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 2: সাপ্লায়ার (Suppliers) */}
       {activeModal === 'supplier' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base">🚚 সাপ্লায়ার তালিকা ও দেনা</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <span className="p-2 bg-blue-100 rounded-lg text-blue-700">🚚</span>
+                <span>সাপ্লায়ার তালিকা ও দেনা</span>
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!supName.trim()) return;
-                addSupplier({
-                  name: supName.trim(),
-                  phone: supPhone.trim() || undefined,
-                  company: supCompany.trim() || undefined,
-                });
-                setSupName('');
-                setSupPhone('');
-                setSupCompany('');
-              }}
-              className="mt-3 space-y-2 text-xs sm:text-sm"
-            >
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  required
-                  placeholder="সাপ্লায়ারের নাম"
-                  value={supName}
-                  onChange={(e) => setSupName(e.target.value)}
-                  className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-                />
-                <input
-                  type="text"
-                  placeholder="কোম্পানি"
-                  value={supCompany}
-                  onChange={(e) => setSupCompany(e.target.value)}
-                  className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-                />
-              </div>
-              <input
-                type="tel"
-                placeholder="মোবাইল নম্বর"
-                value={supPhone}
-                onChange={(e) => setSupPhone(e.target.value)}
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-              />
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-[#b83a14] text-white rounded-lg font-bold text-sm"
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 pb-32">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!supName.trim()) return;
+                  addSupplier({
+                    name: supName.trim(),
+                    phone: supPhone.trim() || undefined,
+                    company: supCompany.trim() || undefined,
+                  });
+                  setSupName('');
+                  setSupPhone('');
+                  setSupCompany('');
+                }}
+                className="mt-3 space-y-2 text-xs sm:text-sm"
               >
-                + নতুন সাপ্লায়ার যোগ করুন
-              </button>
-            </form>
-
-            <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100">
-              {suppliers.map((s) => (
-                <div key={s.id} className="py-2.5 flex justify-between items-center text-sm">
-                  <div>
-                    <div className="font-bold text-gray-900">{s.name}</div>
-                    <div className="text-xs text-gray-500">{s.company} {s.phone ? `• ${s.phone}` : ''}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-[#b83a14]">{formatTaka(s.totalDebt)}</div>
-                    <div className="text-[11px] text-gray-400">দেনা আছে</div>
-                  </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="সাপ্লায়ারের নাম"
+                    value={supName}
+                    onChange={(e) => setSupName(e.target.value)}
+                    className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                  />
+                  <input
+                    type="text"
+                    placeholder="কোম্পানি"
+                    value={supCompany}
+                    onChange={(e) => setSupCompany(e.target.value)}
+                    className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                  />
                 </div>
-              ))}
+                <input
+                  type="tel"
+                  placeholder="মোবাইল নম্বর"
+                  value={supPhone}
+                  onChange={(e) => setSupPhone(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-3.5 animate-gradient-terracotta text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition"
+                >
+                  + নতুন সাপ্লায়ার যোগ করুন
+                </button>
+              </form>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100">
+                {suppliers.map((s) => (
+                  <div key={s.id} className="py-2.5 flex justify-between items-center text-sm">
+                    <div>
+                      <div className="font-bold text-gray-900">{s.name}</div>
+                      <div className="text-xs text-gray-500">{s.company} {s.phone ? `• ${s.phone}` : ''}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-[#b83a14]">{formatTaka(s.totalDebt)}</div>
+                      <div className="text-[11px] text-gray-400">দেনা আছে</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -371,88 +381,93 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 3: খরচ (Expenses) */}
       {activeModal === 'expense' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base">💸 দোকান খরচ হিসাব</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <span className="p-2 bg-red-100 rounded-lg text-red-600">💸</span>
+                <span>দোকান খরচ হিসাব</span>
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!expTitle.trim() || !expAmount) return;
-                addExpense({
-                  title: expTitle.trim(),
-                  category: expCategory,
-                  amount: parseFloat(expAmount) || 0,
-                  date: new Date().toISOString(),
-                });
-                setExpTitle('');
-                setExpAmount('');
-              }}
-              className="mt-3 space-y-2.5 text-sm"
-            >
-              <input
-                type="text"
-                required
-                placeholder="খরচের বিবরণ (যেমন: দোকান বিদ্যুৎ বিল)"
-                value={expTitle}
-                onChange={(e) => setExpTitle(e.target.value)}
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={expCategory}
-                  onChange={(e) => setExpCategory(e.target.value)}
-                  className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5 text-xs font-semibold"
-                >
-                  <option value="দোকান ভাড়া">দোকান ভাড়া</option>
-                  <option value="বিদ্যুৎ বিল">বিদ্যুৎ বিল</option>
-                  <option value="কর্মচারীর বেতন">কর্মচারীর বেতন</option>
-                  <option value="নাস্তা / চা">নাস্তা / চা</option>
-                  <option value="যাতায়াত">যাতায়াত</option>
-                  <option value="অন্যান্য">অন্যান্য</option>
-                </select>
-                <input
-                  type="number"
-                  required
-                  placeholder="টাকার পরিমাণ (৳)"
-                  value={expAmount}
-                  onChange={(e) => setExpAmount(e.target.value)}
-                  className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-[#b83a14] text-white rounded-lg font-bold text-sm"
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 pb-32">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!expTitle.trim() || !expAmount) return;
+                  addExpense({
+                    title: expTitle.trim(),
+                    category: expCategory,
+                    amount: parseFloat(expAmount) || 0,
+                    date: new Date().toISOString(),
+                  });
+                  setExpTitle('');
+                  setExpAmount('');
+                }}
+                className="mt-3 space-y-2.5 text-sm"
               >
-                খরচ লিখে রাখুন
-              </button>
-            </form>
-
-            <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100 max-h-52 overflow-y-auto">
-              <div className="text-xs font-bold text-gray-500 mb-1">সাম্প্রতিক খরচসমূহ:</div>
-              {expenses.map((e) => (
-                <div key={e.id} className="py-2.5 flex items-center justify-between text-sm">
-                  <div>
-                    <div className="font-semibold text-gray-800">{e.title}</div>
-                    <div className="text-xs text-gray-500">{e.category} • {formatBengaliDate(e.date)}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-red-600">-{formatTaka(e.amount)}</span>
-                    <button
-                      onClick={() => setExpenseToDelete({ id: e.id, title: e.title, amount: e.amount })}
-                      className="text-gray-400 hover:text-red-500 p-1"
-                      aria-label="খরচ ডিলিট"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="খরচের বিবরণ (যেমন: দোকান বিদ্যুৎ বিল)"
+                  value={expTitle}
+                  onChange={(e) => setExpTitle(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={expCategory}
+                    onChange={(e) => setExpCategory(e.target.value)}
+                    className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5 text-xs font-semibold"
+                  >
+                    <option value="দোকান ভাড়া">দোকান ভাড়া</option>
+                    <option value="বিদ্যুৎ বিল">বিদ্যুৎ বিল</option>
+                    <option value="কর্মচারীর বেতন">কর্মচারীর বেতন</option>
+                    <option value="নাস্তা / চা">নাস্তা / চা</option>
+                    <option value="যাতায়াত">যাতায়াত</option>
+                    <option value="অন্যান্য">অন্যান্য</option>
+                  </select>
+                  <input
+                    type="number"
+                    required
+                    placeholder="টাকার পরিমাণ (৳)"
+                    value={expAmount}
+                    onChange={(e) => setExpAmount(e.target.value)}
+                    className="bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                  />
                 </div>
-              ))}
+                <button
+                  type="submit"
+                  className="w-full py-3.5 animate-gradient-terracotta text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition"
+                >
+                  খরচ লিখে রাখুন
+                </button>
+              </form>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100 max-h-52 overflow-y-auto">
+                <div className="text-xs font-bold text-gray-500 mb-1">সাম্প্রতিক খরচসমূহ:</div>
+                {expenses.map((e) => (
+                  <div key={e.id} className="py-2.5 flex items-center justify-between text-sm">
+                    <div>
+                      <div className="font-semibold text-gray-800">{e.title}</div>
+                      <div className="text-xs text-gray-500">{e.category} • {formatBengaliDate(e.date)}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-red-600">-{formatTaka(e.amount)}</span>
+                      <button
+                        onClick={() => setExpenseToDelete({ id: e.id, title: e.title, amount: e.amount })}
+                        className="text-gray-400 hover:text-red-500 p-1"
+                        aria-label="খরচ ডিলিট"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -460,98 +475,103 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 4: ক্যাশ খাতা (Cash Book) */}
       {activeModal === 'cash' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base">📒 ক্যাশ খাতা (নগদ জমা-খরচ)</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <span className="p-2 bg-emerald-100 rounded-lg text-emerald-700">📒</span>
+                <span>ক্যাশ খাতা (নগদ জমা-খরচ)</span>
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!cashAmount || !cashDesc) return;
-                addCashEntry({
-                  type: cashType,
-                  amount: parseFloat(cashAmount) || 0,
-                  category: cashCategory,
-                  description: cashDesc.trim(),
-                  date: new Date().toISOString(),
-                });
-                setCashAmount('');
-                setCashDesc('');
-              }}
-              className="mt-3 space-y-2.5 text-sm"
-            >
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCashType('in')}
-                  className={`py-2 rounded-lg font-bold text-xs border ${
-                    cashType === 'in' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  + ক্যাশ ইন (টাকা ঢুকল)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCashType('out')}
-                  className={`py-2 rounded-lg font-bold text-xs border ${
-                    cashType === 'out' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  - ক্যাশ আউট (টাকা গেল)
-                </button>
-              </div>
-
-              <input
-                type="text"
-                required
-                placeholder="বিবরণ"
-                value={cashDesc}
-                onChange={(e) => setCashDesc(e.target.value)}
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-              />
-              <input
-                type="number"
-                required
-                placeholder="টাকার পরিমাণ (৳)"
-                value={cashAmount}
-                onChange={(e) => setCashAmount(e.target.value)}
-                className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
-              />
-              <button
-                type="submit"
-                className="w-full py-2.5 bg-[#b83a14] text-white rounded-lg font-bold text-sm"
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 pb-32">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!cashAmount || !cashDesc) return;
+                  addCashEntry({
+                    type: cashType,
+                    amount: parseFloat(cashAmount) || 0,
+                    category: cashCategory,
+                    description: cashDesc.trim(),
+                    date: new Date().toISOString(),
+                  });
+                  setCashAmount('');
+                  setCashDesc('');
+                }}
+                className="mt-3 space-y-2.5 text-sm"
               >
-                এন্ট্রি যোগ করুন
-              </button>
-            </form>
-
-            <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100 max-h-52 overflow-y-auto">
-              <div className="text-xs font-bold text-gray-500 mb-1">ক্যাশ এন্ট্রি তালিকা:</div>
-              {cashEntries.map((c) => (
-                <div key={c.id} className="py-2 flex items-center justify-between text-xs sm:text-sm">
-                  <div>
-                    <div className="font-semibold text-gray-800">{c.description}</div>
-                    <div className="text-gray-400 text-xs">{formatBengaliDate(c.date)}</div>
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <div className={`font-bold ${c.type === 'in' ? 'text-emerald-600' : 'text-red-600'}`}>
-                      {c.type === 'in' ? '+' : '-'}{formatTaka(c.amount)}
-                    </div>
-                    <button
-                      onClick={() => setCashToDelete({ id: c.id, description: c.description, amount: c.amount })}
-                      className="text-gray-400 hover:text-red-600 p-1 transition"
-                      title="ক্যাশ এন্ট্রি ডিলিট"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCashType('in')}
+                    className={`py-2 rounded-lg font-bold text-xs border ${
+                      cashType === 'in' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    + ক্যাশ ইন (টাকা ঢুকল)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCashType('out')}
+                    className={`py-2 rounded-lg font-bold text-xs border ${
+                      cashType === 'out' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    - ক্যাশ আউট (টাকা গেল)
+                  </button>
                 </div>
-              ))}
+
+                <input
+                  type="text"
+                  required
+                  placeholder="বিবরণ"
+                  value={cashDesc}
+                  onChange={(e) => setCashDesc(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                />
+                <input
+                  type="number"
+                  required
+                  placeholder="টাকার পরিমাণ (৳)"
+                  value={cashAmount}
+                  onChange={(e) => setCashAmount(e.target.value)}
+                  className="w-full bg-[#fbfaf8] border border-gray-300 rounded-lg p-2.5"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-3.5 animate-gradient-terracotta text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition"
+                >
+                  এন্ট্রি যোগ করুন
+                </button>
+              </form>
+
+              <div className="mt-4 pt-3 border-t border-gray-100 divide-y divide-gray-100 max-h-52 overflow-y-auto">
+                <div className="text-xs font-bold text-gray-500 mb-1">ক্যাশ এন্ট্রি তালিকা:</div>
+                {cashEntries.map((c) => (
+                  <div key={c.id} className="py-2 flex items-center justify-between text-xs sm:text-sm">
+                    <div>
+                      <div className="font-semibold text-gray-800">{c.description}</div>
+                      <div className="text-gray-400 text-xs">{formatBengaliDate(c.date)}</div>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <div className={`font-bold ${c.type === 'in' ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {c.type === 'in' ? '+' : '-'}{formatTaka(c.amount)}
+                      </div>
+                      <button
+                        onClick={() => setCashToDelete({ id: c.id, description: c.description, amount: c.amount })}
+                        className="text-gray-400 hover:text-red-600 p-1 transition"
+                        title="ক্যাশ এন্ট্রি ডিলিট"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -559,16 +579,19 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 5: ব্যবসার রিপোর্ট (Business Analytics) */}
       {activeModal === 'business_report' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base">💹 ব্যবসার লাভ-ক্ষতি ও পারফরম্যান্স</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[85dvh] sm:h-auto sm:max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <span className="p-2 bg-emerald-100 rounded-lg text-emerald-700">💹</span>
+                <span>ব্যবসার লাভ-ক্ষতি ও পারফরম্যান্স</span>
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="py-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-20">
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
                   <div className="text-xs text-emerald-800 font-medium">মোট সর্বমোট বিক্রি</div>
@@ -616,16 +639,19 @@ export const MoreView: React.FC = () => {
 
       {/* Modal 6: বাকির পূর্ণাঙ্গ তালিকা ও রিপোর্ট */}
       {activeModal === 'due_report' && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-gray-900 text-base">📈 বাকির পূর্ণাঙ্গ তালিকা ও রিপোর্ট</h3>
-              <button onClick={() => setActiveModal(null)} className="p-1 text-gray-400 hover:text-gray-600">
+        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-lg flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <h3 className="font-bold text-gray-900 text-base flex items-center gap-2">
+                <span className="p-2 bg-orange-100 rounded-lg text-[#b83a14]">📈</span>
+                <span>বাকির পূর্ণাঙ্গ তালিকা ও রিপোর্ট</span>
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="p-1.5 text-gray-400 hover:text-gray-600 bg-gray-50 rounded-lg">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="py-3">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-20">
               <div className="p-3 bg-orange-50 rounded-xl border border-orange-200 mb-3 flex items-center justify-between">
                 <div>
                   <div className="text-xs text-gray-600 font-medium">দোকানের সর্বমোট বাকি:</div>
@@ -673,13 +699,13 @@ export const MoreView: React.FC = () => {
         const grandServiceIncome = monthlyReports.reduce((acc, m) => acc + m.serviceIncome, 0);
 
         return (
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/60 backdrop-blur-xs">
-            <div className="bg-white rounded-2xl w-full max-w-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto animate-scale-in space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">📅</span>
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-sm overflow-hidden">
+            <div className="bg-white rounded-t-[2rem] sm:rounded-3xl w-full h-[90dvh] sm:h-auto sm:max-w-2xl flex flex-col shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+              <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+                <div className="flex items-center gap-3">
+                  <span className="p-2 bg-purple-100 rounded-xl text-purple-700 text-xl">📅</span>
                   <h3 className="font-extrabold text-gray-900 text-base sm:text-lg">
-                    মাসিক হিসাব ও রিপোর্ট (Monthly Report)
+                    মাসিক হিসাব ও রিপোর্ট
                   </h3>
                 </div>
                 <button
@@ -689,113 +715,115 @@ export const MoreView: React.FC = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-
-              {/* Aggregated Top Stat Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
-                  <div className="text-[11px] font-semibold text-emerald-800">সর্বমোট বিক্রি</div>
-                  <div className="text-base sm:text-lg font-black text-emerald-700 mt-0.5">
-                    {formatTaka(grandTotalSales)}
+              
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 pb-20">
+                {/* Aggregated Top Stat Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                    <div className="text-[11px] font-semibold text-emerald-800">সর্বমোট বিক্রি</div>
+                    <div className="text-base sm:text-lg font-black text-emerald-700 mt-0.5">
+                      {formatTaka(grandTotalSales)}
+                    </div>
                   </div>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
-                  <div className="text-[11px] font-semibold text-blue-800">সর্বমোট বিক্রির লাভ</div>
-                  <div className="text-base sm:text-lg font-black text-blue-700 mt-0.5">
-                    {formatTaka(grandTotalProfit)}
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl">
+                    <div className="text-[11px] font-semibold text-blue-800">সর্বমোট বিক্রির লাভ</div>
+                    <div className="text-base sm:text-lg font-black text-blue-700 mt-0.5">
+                      {formatTaka(grandTotalProfit)}
+                    </div>
                   </div>
-                </div>
-                <div className="bg-purple-50 border border-purple-200 p-3 rounded-xl col-span-2 sm:col-span-1">
-                  <div className="text-[11px] font-semibold text-purple-800">কম্পিউটার সার্ভিস আয়</div>
-                  <div className="text-base sm:text-lg font-black text-purple-700 mt-0.5">
-                    {formatTaka(grandServiceIncome)}
+                  <div className="bg-purple-50 border border-purple-200 p-3 rounded-xl col-span-2 sm:col-span-1">
+                    <div className="text-[11px] font-semibold text-purple-800">কম্পিউটার সার্ভিস আয়</div>
+                    <div className="text-base sm:text-lg font-black text-purple-700 mt-0.5">
+                      {formatTaka(grandServiceIncome)}
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Monthly Records List */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between pt-1">
-                  <h4 className="font-bold text-gray-800 text-sm">মাসওয়ারি বিস্তারিত হিসাব:</h4>
-                  <span className="text-xs font-medium text-gray-500">
-                    মোট {toBengaliNumber(monthlyReports.length)} মাসের রেকর্ড
-                  </span>
                 </div>
 
-                {monthlyReports.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                    এখনও কোনো মাসের বিক্রির ডাটা পাওয়া যায়নি।
+                {/* Monthly Records List */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pt-1">
+                    <h4 className="font-bold text-gray-800 text-sm">মাসওয়ারি বিস্তারিত হিসাব:</h4>
+                    <span className="text-xs font-medium text-gray-500">
+                      মোট {toBengaliNumber(monthlyReports.length)} মাসের রেকর্ড
+                    </span>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {monthlyReports.map((report) => (
-                      <div
-                        key={report.yearMonth}
-                        className="bg-white border border-gray-200 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-gray-300 transition"
-                      >
-                        {/* Month Header */}
-                        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#b83a14]" />
-                            <h5 className="font-extrabold text-gray-900 text-base">
-                              {report.monthNameBengali}
-                            </h5>
+
+                  {monthlyReports.length === 0 ? (
+                    <div className="text-center py-8 text-gray-400 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                      এখনও কোনো মাসের বিক্রির ডাটা পাওয়া যায়নি।
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {monthlyReports.map((report) => (
+                        <div
+                          key={report.yearMonth}
+                          className="bg-white border border-gray-200 rounded-2xl p-4 shadow-2xs space-y-3 hover:border-gray-300 transition"
+                        >
+                          {/* Month Header */}
+                          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#b83a14]" />
+                              <h5 className="font-extrabold text-gray-900 text-base">
+                                {report.monthNameBengali}
+                              </h5>
+                            </div>
+                            <span className="text-xs bg-gray-100 text-gray-600 font-bold px-2.5 py-1 rounded-full">
+                              {toBengaliNumber(report.salesCount)} টি মেমো
+                            </span>
                           </div>
-                          <span className="text-xs bg-gray-100 text-gray-600 font-bold px-2.5 py-1 rounded-full">
-                            {toBengaliNumber(report.salesCount)} টি মেমো
-                          </span>
+
+                          {/* Breakdown Metrics Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                            <div className="bg-gray-50 p-2.5 rounded-xl">
+                              <div className="text-gray-500 font-medium">মোট বিক্রি</div>
+                              <div className="font-bold text-gray-900 text-sm mt-0.5">
+                                {formatTaka(report.totalSales)}
+                              </div>
+                            </div>
+
+                            <div className="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-100">
+                              <div className="text-emerald-800 font-medium">বিক্রি লাভ</div>
+                              <div className="font-bold text-emerald-700 text-sm mt-0.5">
+                                {formatTaka(report.totalProfit)}
+                              </div>
+                            </div>
+
+                            <div className="bg-purple-50/70 p-2.5 rounded-xl border border-purple-100">
+                              <div className="text-purple-800 font-medium">সার্ভিস আয় / লাভ</div>
+                              <div className="font-bold text-purple-700 text-sm mt-0.5">
+                                {formatTaka(report.serviceIncome)}
+                              </div>
+                              <div className="text-[10px] text-purple-600">
+                                (লাভ: {formatTaka(report.serviceProfit)})
+                              </div>
+                            </div>
+
+                            <div className="bg-red-50/70 p-2.5 rounded-xl border border-red-100">
+                              <div className="text-red-800 font-medium">দোকান খরচ</div>
+                              <div className="font-bold text-red-600 text-sm mt-0.5">
+                                -{formatTaka(report.totalExpenses)}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Net Profit Bar */}
+                          <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs font-bold">
+                            <div className="text-gray-600">
+                              নিট লাভ (বিক্রি লাভ - খরচ):
+                            </div>
+                            <div
+                              className={`text-sm ${
+                                report.netProfit >= 0 ? 'text-emerald-700' : 'text-red-600'
+                              }`}
+                            >
+                              {formatTaka(report.netProfit)}
+                            </div>
+                          </div>
                         </div>
-
-                        {/* Breakdown Metrics Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                          <div className="bg-gray-50 p-2.5 rounded-xl">
-                            <div className="text-gray-500 font-medium">মোট বিক্রি</div>
-                            <div className="font-bold text-gray-900 text-sm mt-0.5">
-                              {formatTaka(report.totalSales)}
-                            </div>
-                          </div>
-
-                          <div className="bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-100">
-                            <div className="text-emerald-800 font-medium">বিক্রি লাভ</div>
-                            <div className="font-bold text-emerald-700 text-sm mt-0.5">
-                              {formatTaka(report.totalProfit)}
-                            </div>
-                          </div>
-
-                          <div className="bg-purple-50/70 p-2.5 rounded-xl border border-purple-100">
-                            <div className="text-purple-800 font-medium">সার্ভিস আয় / লাভ</div>
-                            <div className="font-bold text-purple-700 text-sm mt-0.5">
-                              {formatTaka(report.serviceIncome)}
-                            </div>
-                            <div className="text-[10px] text-purple-600">
-                              (লাভ: {formatTaka(report.serviceProfit)})
-                            </div>
-                          </div>
-
-                          <div className="bg-red-50/70 p-2.5 rounded-xl border border-red-100">
-                            <div className="text-red-800 font-medium">দোকান খরচ</div>
-                            <div className="font-bold text-red-600 text-sm mt-0.5">
-                              -{formatTaka(report.totalExpenses)}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Net Profit Bar */}
-                        <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-xs font-bold">
-                          <div className="text-gray-600">
-                            নিট লাভ (বিক্রি লাভ - খরচ):
-                          </div>
-                          <div
-                            className={`text-sm ${
-                              report.netProfit >= 0 ? 'text-emerald-700' : 'text-red-600'
-                            }`}
-                          >
-                            {formatTaka(report.netProfit)}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

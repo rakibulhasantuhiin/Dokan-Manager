@@ -463,38 +463,32 @@ export const SaleView: React.FC<SaleViewProps> = ({
         </div>
       </div>
 
-      {/* MOBILE SINGLE-SCREEN CART & CHECKOUT MODAL (z-[70] sits ABOVE Header & BottomNav, zero page scrolling!) */}
+      {/* MOBILE SINGLE-SCREEN CART & CHECKOUT MODAL (z-[140] sits ABOVE Header & BottomNav) */}
       {isMobileCartOpen && (
-        <div className="lg:hidden fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black/65 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-md rounded-t-2xl sm:rounded-2xl max-h-[94dvh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="lg:hidden fixed inset-0 z-[140] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm overflow-hidden">
+          <div className="bg-white w-full max-w-md rounded-t-[2rem] sm:rounded-2xl h-[92dvh] sm:h-auto flex flex-col overflow-hidden shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
             {/* Compact Single Header */}
-            <div className="px-3.5 py-2.5 border-b border-gray-200 flex items-center justify-between bg-gray-50 shrink-0">
-              <div className="flex items-center gap-2">
-                <ShoppingCart className="w-4 h-4 text-[#b83a14]" />
-                <span className="font-bold text-gray-900 text-sm">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-white shrink-0 sticky top-0 z-10">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-orange-100 rounded-lg text-[#b83a14]">
+                  <ShoppingCart className="w-5 h-5" />
+                </div>
+                <span className="font-extrabold text-gray-900 text-sm">
                   কার্ট ও চেকআউট ({toBengaliNumber(totalCartCount)} টি পণ্য)
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                {cart.length > 0 && (
-                  <button
-                    onClick={() => setCart([])}
-                    className="text-xs text-red-600 hover:underline font-bold px-2 py-0.5 rounded bg-red-50"
-                  >
-                    সব মুছুন
-                  </button>
-                )}
                 <button
                   onClick={() => setIsMobileCartOpen(false)}
-                  className="p-1 text-gray-500 hover:text-gray-800 rounded-lg bg-gray-200/60"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg bg-gray-50"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
             {/* Compact Single-Screen Body */}
-            <div className="p-3 overflow-y-auto flex-1">
+            <div className="p-4 overflow-y-auto flex-1 pb-32">
               <CartCheckoutCard
                 cart={cart}
                 subtotal={subtotal}
@@ -818,9 +812,9 @@ const CartCheckoutCard: React.FC<CartCheckoutCardProps> = ({
             <button
               type="button"
               onClick={onCheckout}
-              className="w-full py-2.5 bg-[#b83a14] hover:bg-[#a33210] active:scale-[0.99] text-white rounded-xl font-bold text-sm shadow-sm transition flex items-center justify-center gap-1.5"
+              className="w-full py-3.5 animate-gradient-terracotta hover:brightness-110 active:scale-[0.98] text-white rounded-2xl font-black text-sm shadow-md transition flex items-center justify-center gap-2"
             >
-              <Receipt className="w-4 h-4 stroke-[2.2]" />
+              <Receipt className="w-5 h-5 stroke-[2.5]" />
               <span>বিক্রি সম্পন্ন করুন ({formatTaka(grandTotal)})</span>
             </button>
           </div>
